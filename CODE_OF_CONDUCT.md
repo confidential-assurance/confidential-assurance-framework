@@ -5,7 +5,7 @@ as its code of conduct.
 
 ## Reporting
 
-Report unacceptable behavior to the maintainers at **conduct@caf.example** (replace before publishing).
+Report unacceptable behavior to the maintainers at **admn-caf@outlook.com**.
 Reports are handled confidentially by maintainers who are not involved in the incident.
 
 ## Enforcement

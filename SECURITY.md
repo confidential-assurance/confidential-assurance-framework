@@ -6,8 +6,8 @@ privately and give us time to fix them.
 ## How to report
 
 - Use GitHub's **private vulnerability reporting** on this repository (Security tab → Report a vulnerability), or
-- Email **security@caf.example** (replace before publishing), encrypted to the key published in
-  `docs/security-pgp.asc`.
+- Email **sec-caf@outlook.com**. Email is not end-to-end encrypted, so for sensitive details prefer private
+  vulnerability reporting, or email first and ask for a secure channel.
 
 Please include affected component and version or image digest, reproduction steps, and impact.
 
