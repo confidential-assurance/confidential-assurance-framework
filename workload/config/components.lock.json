@@ -1,0 +1,19 @@
+{
+  "_comment": "Every component in the measured image. Versions and checksums are filled in per release; CI refuses empty sha256 values and licenses not on the allow list in THIRD_PARTY_LICENSES.md.",
+  "components": [
+    {"name": "syft",     "version": "", "license": "Apache-2.0",    "url": "", "sha256": "", "role": "sbom"},
+    {"name": "grype",    "version": "", "license": "Apache-2.0",    "url": "", "sha256": "", "role": "cve"},
+    {"name": "grype-db", "version": "", "license": "data:mixed",    "url": "", "sha256": "", "role": "cve-db", "built_at": ""},
+    {"name": "trivy",    "version": "", "license": "Apache-2.0",    "url": "", "sha256": "", "role": "iac,cve"},
+    {"name": "checkov",  "version": "", "license": "Apache-2.0",    "url": "", "sha256": "", "role": "iac"},
+    {"name": "cfn-nag",  "version": "", "license": "MIT",           "url": "", "sha256": "", "role": "iac"},
+    {"name": "opengrep", "version": "", "license": "LGPL-2.1-only", "url": "", "sha256": "", "role": "sast"},
+    {"name": "vllm",     "version": "", "license": "Apache-2.0",    "url": "", "sha256": "", "role": "serving"}
+  ],
+  "models": [
+    {"name": "nvidia/Nemotron-3-Ultra-NVFP4", "license": "OpenMDW-1.1", "weights_sha256": "", "role": "analyst", "phase": "2+"},
+    {"name": "Qwen3.8-27B (checkpoint TBD)",   "license": "verify",      "weights_sha256": "", "role": "analyst", "phase": "1"},
+    {"name": "fdtn-ai/Foundation-sec-8B-Instruct", "license": "Apache-2.0", "weights_sha256": "", "role": "attack-mapping", "phase": "1+"}
+  ],
+  "prompt_templates_sha256": ""
+}

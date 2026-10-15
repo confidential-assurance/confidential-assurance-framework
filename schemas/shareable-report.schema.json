@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:caf:schema:shareable-report/v1",
+  "title": "CAF shareable assurance report",
+  "description": "Closed schema: aggregates only. additionalProperties is false at every level so no field can carry file paths, code or remediation text.",
+  "type": "object",
+  "required": ["format", "meta", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "caf-shareable/v1"},
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scan_id", "scanned_at", "vendor_display_name", "scope_summary"],
+      "properties": {
+        "scan_id": {"type": "string", "maxLength": 64},
+        "scanned_at": {"type": "integer"},
+        "vendor_display_name": {"type": "string", "maxLength": 120},
+        "scope_summary": {"type": "string", "maxLength": 200}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity_counts", "owasp_categories", "attack_techniques", "kinds", "total"],
+      "properties": {
+        "severity_counts": {"type": "object", "propertyNames": {"enum": ["critical", "high", "medium", "low", "info", "unknown"]}, "additionalProperties": {"type": "integer"}},
+        "owasp_categories": {"type": "object", "propertyNames": {"pattern": "^A[0-9]{2}:20[0-9]{2}$"}, "additionalProperties": {"type": "integer"}},
+        "attack_techniques": {"type": "object", "propertyNames": {"pattern": "^T[0-9]{4}(\\.[0-9]{3})?$"}, "additionalProperties": {"type": "integer"}},
+        "kinds": {"type": "object", "propertyNames": {"enum": ["cve", "sast", "iac", "secret"]}, "additionalProperties": {"type": "integer"}},
+        "total": {"type": "integer"}
+      }
+    }
+  }
+}

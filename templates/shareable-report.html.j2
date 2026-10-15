@@ -1,0 +1,26 @@
+{#- Receives ONLY `report`, validated against schemas/shareable-report.schema.json (aggregates only). -#}
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Security assurance summary · {{ report.meta.vendor_display_name }}</title></head>
+<body>
+  <h1>Security assurance summary</h1>
+  <p>{{ report.meta.vendor_display_name }} · scan {{ report.meta.scan_id }} · scope: {{ report.meta.scope_summary }}</p>
+  <p>Assessed inside an attested confidential computing environment. Neither the assessor nor its operator had
+     access to the source. Verify this document with the accompanying signature and provenance statement.</p>
+
+  <h2>Findings by severity</h2>
+  <table>
+    {% for sev in ["critical", "high", "medium", "low", "info"] %}
+    <tr><th>{{ sev | capitalize }}</th><td>{{ report.summary.severity_counts.get(sev, 0) }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>OWASP Top 10 categories with findings</h2>
+  <ul>{% for cat, n in report.summary.owasp_categories | dictsort %}<li>{{ cat }}: {{ n }}</li>{% endfor %}</ul>
+
+  <h2>MITRE ATT&amp;CK techniques enabled by findings</h2>
+  <ul>{% for t, n in report.summary.attack_techniques | dictsort %}<li>{{ t }}: {{ n }}</li>{% endfor %}</ul>
+
+  <p>Total findings: {{ report.summary.total }}. This summary intentionally contains no file names, code, or remediation details.</p>
+</body>
+</html>

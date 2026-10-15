@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:caf:schema:bundle-manifest/v1",
+  "title": "CAF bundle manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "key_mode", "kms_key", "wrapped_dek", "nonce", "aad", "ciphertext_sha256", "plaintext_sha256", "vendor_hpke_public_key"],
+  "properties": {
+    "format": {"const": "caf-bundle/v1"},
+    "key_mode": {"enum": ["operator", "vendor"]},
+    "kms_key": {"type": "string", "pattern": "^projects/.+/locations/.+/keyRings/.+/cryptoKeys/.+$"},
+    "wrapped_dek": {"type": "string", "contentEncoding": "base64"},
+    "nonce": {"type": "string", "contentEncoding": "base64"},
+    "aad": {"type": "string", "contentEncoding": "base64"},
+    "ciphertext_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "plaintext_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "vendor_hpke_public_key": {"type": "string", "contentEncoding": "base64"}
+  }
+}

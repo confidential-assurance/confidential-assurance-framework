@@ -1,0 +1,18 @@
+# Never commit keys, bundles, results or state
+*.key
+*.pem
+!docs/*.pem
+vendor-hpke.*
+upload/
+results/
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/

@@ -1,0 +1,10 @@
+# Pinned with hashes at release time: `pip-compile --generate-hashes requirements.in`.
+# Kept deliberately small: every package is part of the measured image.
+google-auth
+google-cloud-kms
+google-cloud-storage
+cryptography
+pyhpke
+jinja2
+jsonschema
+httpx

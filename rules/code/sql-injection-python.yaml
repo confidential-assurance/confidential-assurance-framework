@@ -1,0 +1,16 @@
+rules:
+  - id: caf.python.sqli.string-built-query
+    languages: [python]
+    severity: ERROR
+    message: SQL query built from a formatted or concatenated string and passed to execute(); use parameters.
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute($Q % ..., ...)
+          - pattern: $CUR.execute($Q.format(...), ...)
+          - pattern: $CUR.execute(f"...", ...)
+          - pattern: $CUR.execute($A + $B, ...)
+    metadata:
+      cwe: ["CWE-89"]
+      owasp: ["A05:2025"]
+      confidence: medium
+      references: ["https://cwe.mitre.org/data/definitions/89.html"]

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:caf:schema:findings/v1",
+  "title": "CAF detailed report",
+  "type": "object",
+  "required": ["format", "meta", "findings", "analysis"],
+  "properties": {
+    "format": {"const": "caf-detailed/v1"},
+    "meta": {"type": "object"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "tool", "rule_id", "kind", "severity"],
+        "properties": {
+          "id": {"type": "string"},
+          "tool": {"enum": ["grype", "trivy", "checkov", "cfn-nag", "opengrep", "caf-rules"]},
+          "rule_id": {"type": "string"},
+          "kind": {"enum": ["cve", "sast", "iac", "secret"]},
+          "severity": {"enum": ["critical", "high", "medium", "low", "info", "unknown"]},
+          "cwe": {"type": "array", "items": {"type": "string", "pattern": "^CWE-[0-9]+$"}},
+          "cve": {"type": ["string", "null"], "pattern": "^(CVE-[0-9]{4}-[0-9]{4,}|GHSA-[a-z0-9-]+)$"},
+          "location": {"type": ["object", "null"]},
+          "evidence": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "required": ["triage", "mappings", "model_observations"],
+      "properties": {
+        "triage": {"type": "object"},
+        "mappings": {"type": "object"},
+        "model_observations": {
+          "description": "Issues the model proposes that no scanner reported. Always labelled as analysis, never merged into findings.",
+          "type": "array"
+        }
+      }
+    }
+  }
+}

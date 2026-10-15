@@ -1,0 +1,11 @@
+project_id                     = "my-caf-project"
+region                         = "us-central1"
+launcher_service_account_email = "launcher@my-caf-project.iam.gserviceaccount.com"
+
+# Digest from the signed release you are deploying. Verify it with `make reproduce` before applying.
+allowed_image_digests = [
+  "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+]
+
+hardware_model = "INTEL_TDX"
+require_gpu_cc = true

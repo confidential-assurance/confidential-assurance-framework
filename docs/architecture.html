@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidential Assurance Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F8FA;
+    --card:#FFFFFF;
+    --ink:#14202E;
+    --slate:#54657A;
+    --line:#D8DFE7;
+    --tee:#1B4FD8;      /* trust boundary / attestation */
+    --tee-soft:#E8EEFC;
+    --verify:#1E7F5C;   /* verified / signed */
+    --verify-soft:#E5F3ED;
+    --warn:#8A5A00;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --disp:'Archivo', ui-sans-serif, sans-serif;
+    --body:'Source Serif 4', Georgia, serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16.5px;
+    line-height:1.62;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px 96px;}
+
+  /* ---------- masthead ---------- */
+  header.mast{
+    border-bottom:3px solid var(--ink);
+    padding:44px 0 26px;
+    margin-bottom:8px;
+  }
+  .doc-eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--tee); font-weight:600;
+    display:flex; gap:14px; flex-wrap:wrap;
+  }
+  .doc-eyebrow .sep{color:var(--line);}
+  h1{
+    font-family:var(--disp); font-weight:800; font-stretch:82%;
+    font-size:clamp(30px, 4.6vw, 52px); line-height:1.04;
+    letter-spacing:-0.015em; margin:14px 0 12px;
+  }
+  h1 .accent{color:var(--tee);}
+  .doc-sub{max-width:66ch; color:var(--slate); font-size:17px;}
+  .doc-meta{
+    margin-top:20px; display:flex; gap:26px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--slate);
+  }
+  .doc-meta b{color:var(--ink); font-weight:600;}
+
+  /* ---------- sections ---------- */
+  section{margin-top:64px;}
+  .sec-head{display:flex; align-items:baseline; gap:14px; border-bottom:1.5px solid var(--line); padding-bottom:10px; margin-bottom:18px;}
+  .sec-num{font-family:var(--mono); font-size:13px; font-weight:600; color:var(--tee);}
+  h2{font-family:var(--disp); font-weight:700; font-stretch:88%; font-size:26px; letter-spacing:-0.01em;}
+  h3{font-family:var(--disp); font-weight:600; font-stretch:92%; font-size:18px; margin:26px 0 8px;}
+  p{max-width:78ch; margin:10px 0;}
+  p.lede{font-size:18px;}
+  .kicker{font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--slate); font-weight:600;}
+
+  /* ---------- diagram frames ---------- */
+  figure.diagram{
+    background:var(--card); border:1.5px solid var(--line); border-radius:10px;
+    padding:22px 18px 12px; margin:22px 0 8px; overflow-x:auto;
+  }
+  figure.diagram svg{display:block; width:100%; height:auto; min-width:820px;}
+  figcaption{
+    font-family:var(--mono); font-size:12px; color:var(--slate);
+    padding:10px 6px 6px; border-top:1px dashed var(--line); margin-top:12px;
+  }
+  figcaption b{color:var(--ink);}
+
+  /* ---------- tables ---------- */
+  table{width:100%; border-collapse:collapse; margin:18px 0; background:var(--card); border:1.5px solid var(--line); border-radius:10px; overflow:hidden; font-size:14.5px;}
+  th{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.09em; text-transform:uppercase;
+    text-align:left; color:var(--slate); background:var(--paper);
+    padding:11px 14px; border-bottom:1.5px solid var(--line); font-weight:600;
+  }
+  td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td.svc{font-family:var(--disp); font-weight:600; font-stretch:92%; white-space:nowrap; font-size:14px;}
+  td .cfg{font-family:var(--mono); font-size:12px; color:var(--tee);}
+  .tag{
+    display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600;
+    padding:2px 8px; border-radius:99px; letter-spacing:.03em;
+  }
+  .tag.none{background:var(--verify-soft); color:var(--verify);}
+  .tag.tee{background:var(--tee-soft); color:var(--tee);}
+  .tag.ops{background:#F3EAD8; color:var(--warn);}
+
+  /* ---------- callouts ---------- */
+  .callout{
+    background:var(--tee-soft); border-left:4px solid var(--tee);
+    border-radius:0 8px 8px 0; padding:16px 20px; margin:20px 0; max-width:86ch;
+  }
+  .callout.green{background:var(--verify-soft); border-left-color:var(--verify);}
+  .callout .kicker{color:var(--tee); margin-bottom:4px; display:block;}
+  .callout.green .kicker{color:var(--verify);}
+  .callout p{margin:4px 0;}
+
+  code{font-family:var(--mono); font-size:.86em; background:#EDF1F5; padding:1px 6px; border-radius:4px;}
+
+  footer{margin-top:80px; border-top:3px solid var(--ink); padding-top:16px;
+    font-family:var(--mono); font-size:12px; color:var(--slate); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  @media (max-width: 720px){
+    table{display:block; overflow-x:auto;}
+    td.svc{white-space:normal;}
+    .wrap{padding:0 16px 64px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div class="doc-eyebrow">
+    <span>Confidential Assurance Framework</span><span class="sep">/</span>
+    <span>Architecture specification</span><span class="sep">/</span>
+    <span>Google Cloud · Confidential Space</span><span class="sep">/</span>
+    <span>Rev C · Oct 2026</span><span class="sep">/</span>
+    <span>Open source · Apache-2.0</span>
+  </div>
+  <h1>Confidential code &amp; IaC scanning:<br><span class="accent">operator-excluded</span>, open-source architecture on GCP</h1>
+  <p class="doc-sub">A vulnerability-scanning service where third-party vendor code and infrastructure-as-code
+  are decrypted, analyzed by an open-weight LLM and deterministic scanners, and re-encrypted — exclusively inside
+  a hardware trusted-execution environment that the service operator provably cannot access. Published as the open-source
+  project <b>Confidential Assurance Framework (CAF)</b> so anyone can rebuild the measured image and check it.</p>
+  <div class="doc-meta">
+    <span>TEE: <b>Confidential Space · Intel TDX + H100 today → Blackwell CC (NVLink-encrypted) next</b></span>
+    <span>Model: <b>Nemotron 3 Ultra (OpenMDW) target · Foundation-sec-8B sidecar · vLLM</b></span>
+    <span>Attestation: <b>EAT / RATS · Google Cloud Attestation · Intel Tiber (optional)</b></span>
+  </div>
+</header>
+
+<section id="trust-model">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Trust model — who trusts what</h2></div>
+  <p class="lede">The product being sold is not a scan; it is a <em>proof</em>. Every design decision below serves one claim:
+  vendor plaintext exists only inside attested hardware running an open-source, reproducibly built, immutable workload image —
+  and any relying party can verify that claim cryptographically without trusting the operator.</p>
+  <p>Three parties participate. The <strong>vendor</strong> (data owner) trusts AMD/Intel and NVIDIA silicon, the published
+  workload image they can rebuild from source to the same digest, and standard cryptography — never the operator. The <strong>operator</strong> (you) runs
+  the control plane but is architecturally excluded from payloads: Confidential Space's hardened image provides no SSH, no
+  serial console, and no interactive access, and memory is encrypted against the hypervisor and Google itself. The
+  <strong>relying party</strong> (the vendor's prospective customer) trusts the signed shareable report because its signing key
+  is only ever released to the attested workload, and every signature is anchored in a public transparency log.</p>
+  <div class="callout">
+    <span class="kicker">Design invariant</span>
+    <p>No component outside the dashed blue boundary in any diagram below ever holds vendor plaintext, a plaintext
+    data-encryption key, or the artifact-signing key. The control plane schedules ciphertext; it cannot read it.</p>
+  </div>
+</section>
+
+<section id="platform">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Platform &amp; model selection — October 2026 update</h2></div>
+  <p class="lede">Since Rev A, three things moved: NVIDIA shipped Blackwell confidential computing with encrypted NVLink and
+  announced rack-scale TEEs on Vera Rubin; AMD advanced trusted device I/O on its next EPYC generation; and the open-weight
+  frontier turned over almost completely. The trust architecture in sections 03–09 is unchanged — it was designed to be
+  hardware- and model-agnostic. What changes is <em>where</em> it runs and <em>which</em> model it measures.</p>
+
+  <h3>What changed in the silicon</h3>
+  <p><strong>NVIDIA Hopper (production baseline).</strong> Hopper confidential computing is GA in two modes: one GPU passed
+  through per confidential VM, or Protected PCIe (PPCIe), which places all eight GPUs of an HGX H100/H200 board in one CVM.
+  The catch with PPCIe is that GPU-to-GPU traffic over NVLink/NVSwitch is not encrypted in that mode — the board is inside
+  the trust boundary but the fabric is not cryptographically protected. On GCP, Confidential Space support for Hopper GPUs
+  is now GA, which is what this design ships on first.</p>
+  <p><strong>NVIDIA Blackwell (the target platform).</strong> Blackwell closes Hopper's gaps. HGX B200, HGX B300, and RTX PRO 6000
+  all support confidential computing, with NVLink encryption across up to eight GPUs. Blackwell also supports TDISP and IDE, so
+  the GPU talks to the confidential VM with inline encryption instead of the software bounce buffers Hopper needs — and
+  instead of all-or-nothing PPCIe, a confidential VM can be assigned 1, 2, 4, or 8 GPUs. Independent benchmarking on B200 with
+  Intel TDX measured roughly 1–3% throughput overhead for confidential inference when correctly configured. On GCP, Confidential
+  G4 VMs (RTX PRO 6000 Blackwell on AMD Turin with SEV) are in preview across all G4 regions; confidential A4 (HGX B200) has not
+  been announced, though neoclouds are already running verified confidential HGX B200 in production.</p>
+  <p><strong>NVIDIA Vera Rubin (roadmap, not for this workload yet).</strong> Vera Rubin NVL72 is the first rack-scale TEE: 72 GPUs,
+  36 Vera CPUs, and the whole NVLink fabric in one encrypted security domain, shipping through partners in the second half of
+  2026. Azure is among the clouds named as adopting it; GCP is not yet. It's built for trillion-parameter training and
+  serving — well beyond what a per-job scanning enclave needs.</p>
+  <p><strong>AMD.</strong> On the CPU side, EPYC 9005 (Turin) introduced Trusted I/O via TDISP, and in September 2026 AMD posted
+  Linux patches enabling SEV-TIO TDISP on PCIe 6.0 for EPYC 9006 (Venice), alongside Enhanced SMT Protection for SEV-SNP guests.
+  That is the AMD half of the bounce-buffer-free CPU↔GPU path. Two cautions: the RMPocalypse vulnerability (CVE-2025-0033)
+  broke SEV-SNP integrity guarantees on Zen 3 through Zen 5 via the Reverse Map Table initialization, and GCP warned that
+  SEV-SNP Confidential VMs may see longer boot times and performance changes from August 2026 due to a guest kernel migration
+  and security updates. On the accelerator side, AMD's Helios rack emphasizes open interconnect standards rather than an
+  integrated GPU TEE, so AMD Instinct is not yet a fit for this design.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1160 420" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="Three-phase hardware and model roadmap">
+    <defs>
+      <marker id="r1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1B4FD8"/></marker>
+    </defs>
+    <line x1="40" y1="54" x2="1120" y2="54" stroke="#1B4FD8" stroke-width="2.5" marker-end="url(#r1)"/>
+    <g font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="#1B4FD8">
+      <circle cx="60" cy="54" r="7" fill="#1B4FD8"/><text x="76" y="40">PHASE 1 · SHIP NOW (GA)</text>
+      <circle cx="430" cy="54" r="7" fill="#FFFFFF" stroke="#1B4FD8" stroke-width="2.5"/><text x="446" y="40">PHASE 2 · WHEN G4 CC REACHES GA</text>
+      <circle cx="800" cy="54" r="7" fill="#FFFFFF" stroke="#1B4FD8" stroke-width="2.5" stroke-dasharray="3 2"/><text x="816" y="40">PHASE 3 · CONFIDENTIAL B200-CLASS</text>
+    </g>
+    <g font-size="12.5" fill="#14202E">
+      <rect x="40" y="76" width="350" height="320" rx="9" fill="#FFFFFF" stroke="#1B4FD8" stroke-width="1.8"/>
+      <text x="58" y="104" font-size="15" font-weight="700">Confidential Space · A3</text>
+      <text x="58" y="124" font-size="12" fill="#54657A">Intel TDX CPU + 1× H100 (CC mode)</text>
+      <text x="58" y="140" font-size="12" fill="#54657A">GA · Intel Trust Authority GA</text>
+      <line x1="58" y1="156" x2="372" y2="156" stroke="#D8DFE7"/>
+      <text x="58" y="180" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">MODEL STACK</text>
+      <text x="58" y="202" font-weight="600">Dense ~27B coder (Qwen3.8-27B class)</text>
+      <text x="58" y="218" font-size="11.5" fill="#54657A">fits one 80 GB H100 with room for KV cache</text>
+      <text x="58" y="242" font-weight="600">Foundation-sec-8B (Apache-2.0)</text>
+      <text x="58" y="258" font-size="11.5" fill="#54657A">ATT&amp;CK TTP mapping, triage summaries</text>
+      <line x1="58" y1="276" x2="372" y2="276" stroke="#D8DFE7"/>
+      <text x="58" y="300" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">TRADE-OFF</text>
+      <text x="58" y="322" font-size="11.5" fill="#54657A">Single GPU caps model size; scanners carry</text>
+      <text x="58" y="338" font-size="11.5" fill="#54657A">more of the load. Uses bounce buffers</text>
+      <text x="58" y="354" font-size="11.5" fill="#54657A">(Hopper has no TDISP). Fully attestable,</text>
+      <text x="58" y="370" font-size="11.5" fill="#54657A">production-supported today.</text>
+
+      <rect x="410" y="76" width="350" height="320" rx="9" fill="#FFFFFF" stroke="#B9CBF4" stroke-width="1.8"/>
+      <text x="428" y="104" font-size="15" font-weight="700">Confidential G4 · Blackwell</text>
+      <text x="428" y="124" font-size="12" fill="#54657A">AMD Turin SEV + RTX PRO 6000 (96 GB)</text>
+      <text x="428" y="140" font-size="12" fill="#54657A">Preview today · needs Confidential Space</text>
+      <line x1="428" y1="156" x2="742" y2="156" stroke="#D8DFE7"/>
+      <text x="428" y="180" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">MODEL STACK</text>
+      <text x="428" y="202" font-weight="600">Nemotron 3 Ultra · NVFP4</text>
+      <text x="428" y="218" font-size="11.5" fill="#54657A">550B / 55B active; ~275 GB weights at 4-bit</text>
+      <text x="428" y="234" font-size="11.5" fill="#54657A">→ 4–8 GPUs per confidential VM</text>
+      <text x="428" y="258" font-weight="600">+ Foundation-sec-8B sidecar</text>
+      <line x1="428" y1="276" x2="742" y2="276" stroke="#D8DFE7"/>
+      <text x="428" y="300" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">TRADE-OFF</text>
+      <text x="428" y="322" font-size="11.5" fill="#54657A">Frontier-class open model with native FP4.</text>
+      <text x="428" y="338" font-size="11.5" fill="#54657A">Gate: GA status, multi-GPU assignment, and</text>
+      <text x="428" y="354" font-size="11.5" fill="#54657A">Confidential Space image support for G4.</text>
+      <text x="428" y="370" font-size="11.5" fill="#54657A">Re-validate SEV-SNP TCB after RMPocalypse.</text>
+
+      <rect x="780" y="76" width="340" height="320" rx="9" fill="#FFFFFF" stroke="#B9CBF4" stroke-width="1.8" stroke-dasharray="7 4"/>
+      <text x="798" y="104" font-size="15" font-weight="700">HGX B200 / B300 class</text>
+      <text x="798" y="124" font-size="12" fill="#54657A">TDX or SEV-TIO host · NVLink encrypted</text>
+      <text x="798" y="140" font-size="12" fill="#54657A">TDISP/IDE · ~1–3% inference overhead</text>
+      <line x1="798" y1="156" x2="1102" y2="156" stroke="#D8DFE7"/>
+      <text x="798" y="180" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">MODEL STACK</text>
+      <text x="798" y="202" font-weight="600">Nemotron 3 Ultra (primary)</text>
+      <text x="798" y="222" font-weight="600">MiMo-V2.6-Pro (challenger, MIT)</text>
+      <text x="798" y="238" font-size="11.5" fill="#54657A">1.02T / 42B active; 8-GPU footprint</text>
+      <text x="798" y="258" font-weight="600">DeepSeek-V4.1-Flash (MIT, cheap decode)</text>
+      <line x1="798" y1="276" x2="1102" y2="276" stroke="#D8DFE7"/>
+      <text x="798" y="300" font-size="12" font-weight="700" fill="#54657A" font-family="IBM Plex Mono, monospace">TRADE-OFF</text>
+      <text x="798" y="322" font-size="11.5" fill="#54657A">Closes Hopper's fabric and bounce-buffer</text>
+      <text x="798" y="338" font-size="11.5" fill="#54657A">gaps. Not yet offered confidentially on GCP;</text>
+      <text x="798" y="354" font-size="11.5" fill="#54657A">available at neoclouds. Vera Rubin NVL72</text>
+      <text x="798" y="370" font-size="11.5" fill="#54657A">rack-scale TEE stays on watch, not plan.</text>
+    </g>
+  </svg>
+  <figcaption><b>Fig. 1 — Phased platform and model roadmap.</b> Each phase is a new measured workload image with its own
+  AIBOM; vendors' key-release policies roll forward through the normal digest-pinning window (section 09), so a hardware move
+  never requires re-onboarding.</figcaption>
+  </figure>
+
+  <h3>Open-weight model selection</h3>
+  <p>Rev A recommended Qwen3-Coder 480B. It has been overtaken: its SWE-bench Pro score of 38.7% now trails the leaders by more
+  than twenty points. For a <em>security</em> product, raw benchmark rank is only one of five selection criteria — license
+  clarity, origin (your customers' security reviewers will ask), whether the model fits a confidential GPU footprint, and how
+  much of its provenance you can put in the AIBOM matter as much.</p>
+  <table>
+    <thead><tr><th style="width:17%">Role</th><th style="width:18%">Model</th><th style="width:15%">Size (total / active)</th><th style="width:13%">License · origin</th><th>Why it fits — or doesn't</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Primary analyst</td><td><b>Nemotron 3 Ultra</b><br><span class="cfg">NVIDIA · June 2026</span></td><td>550B / 55B · 1M ctx · ships pre-quantized NVFP4</td><td><span class="tag none">OpenMDW-1.1</span><br>US</td><td>Highest-scoring US-origin open model; permissive license that carves outputs out of license obligations. NVIDIA published the training data and recipes alongside the weights — that lets your AIBOM document training-data provenance, not just a weights hash, which no other frontier-class open model allows. Native FP4 maps directly onto Blackwell.</td></tr>
+      <tr><td class="svc">Quality challenger</td><td><b>MiMo-V2.6-Pro</b><br><span class="cfg">Xiaomi · Sept 2026</span></td><td>1.02T / 42B · 1M ctx</td><td><span class="tag none">MIT</span><br>China</td><td>Top open-weight model on the Artificial Analysis index (46) and the cleanest license among the leaders. Run it in your eval harness head-to-head; adopt only if it wins on your vulnerability corpus <em>and</em> your target customers accept China-origin weights.</td></tr>
+      <tr><td class="svc">Efficiency candidate</td><td><b>DeepSeek-V4.1-Flash</b><br><span class="cfg">DeepSeek · Sept 2026</span></td><td>552B / 8–16B active</td><td><span class="tag none">MIT</span><br>China</td><td>Very low active-parameter count makes decode cheap for high-volume triage passes. Reported agentic scores are vendor-supplied; verify independently.</td></tr>
+      <tr><td class="svc">Phase 1 single-GPU</td><td><b>Qwen3.8-27B</b> class</td><td>27B dense</td><td><span class="tag ops">verify</span><br>China</td><td>The leading single-GPU coder line (its predecessor Qwen3.6-27B posted 77.2 on SWE-bench Verified). Fits one 80 GB H100 at BF16 with room for KV cache. Confirm the exact checkpoint's license before shipping.</td></tr>
+      <tr><td class="svc">Security specialist</td><td><b>Foundation-sec-8B</b><br><span class="cfg">Cisco</span></td><td>8B (Llama 3.1 base)</td><td><span class="tag none">Apache-2.0</span><br>US</td><td>Purpose-trained on security data; the instruct variant maps MITRE ATT&amp;CK TTPs and drafts incident-style reports. Cheap sidecar for the CWE→CAPEC→ATT&amp;CK mapping stage.</td></tr>
+      <tr><td class="svc">Optional pre-filter</td><td><b>Antares-350M / 1B</b><br><span class="cfg">Cisco · July 2026</span></td><td>350M / 1B</td><td><span class="tag ops">vetted access</span><br>US</td><td>Small models specialized in localizing known vulnerabilities across large codebases. Access is gated to vetted users, so treat as an add-on if you qualify, not a dependency.</td></tr>
+      <tr><td class="svc">Excluded</td><td>Kimi K3 · GLM-5.3 · Qwen3-Coder 480B</td><td>2.8T · 753B · 480B</td><td><span class="tag ops">custom</span></td><td>Kimi K3 leads open-weight coding but at 2.8T it needs a large cluster and carries a custom license; GLM-5.3 also moved to a custom license (GLM-5.2 remains MIT as a fallback); Qwen3-Coder 480B is superseded.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <span class="kicker">Recommendation</span>
+    <p>Ship Phase 1 on GA Hopper Confidential Space with a single-GPU coder plus Foundation-sec-8B — the deterministic scanners
+    already own the factual findings, so a smaller model costs less than it would in a pure-LLM design. Standardize the
+    eval harness now, then move the primary analyst to <strong>Nemotron 3 Ultra</strong> on Blackwell confidential GPUs as soon
+    as GCP offers a multi-GPU Blackwell shape inside Confidential Space (today its GPU attestation claim reports single-GPU passthrough only). Nemotron wins on the three criteria that matter most
+    for a trust product: a clean permissive license, US origin, and the only frontier-class open release whose training data
+    you can cite in the AIBOM. Keep MiMo-V2.6-Pro as the measured challenger so the choice stays evidence-based.</p>
+  </div>
+  <p style="font-family:var(--mono); font-size:12px; color:var(--slate);">Benchmarks cited here are point-in-time (Oct 2026) and several are vendor-reported; this field turns over quarterly. Re-run the internal eval before each workload release.</p>
+</section>
+
+<section id="system">
+  <div class="sec-head"><span class="sec-num">03</span><h2>System architecture</h2></div>
+  <p>Four zones. The vendor zone runs client-side and never uploads plaintext. The control plane orchestrates jobs but
+  handles ciphertext only. The Confidential Space TEE is the sole location where plaintext ever exists. The trust-services
+  layer holds keys, attestation, and transparency infrastructure that binds the other three together.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1200 730" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="System architecture diagram with four zones">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#54657A"/></marker>
+      <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1E7F5C"/></marker>
+      <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1B4FD8"/></marker>
+    </defs>
+
+    <!-- ZONE: VENDOR -->
+    <rect x="20" y="20" width="260" height="345" rx="10" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+    <text x="40" y="48" font-size="12.5" font-weight="700" letter-spacing="1.5" fill="#54657A" font-family="IBM Plex Mono, monospace">VENDOR · UNTRUSTING</text>
+    <rect x="40" y="62" width="220" height="66" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="52" y="86" font-size="14" font-weight="600" fill="#14202E">Upload CLI / SDK</text>
+    <text x="52" y="104" font-size="12" fill="#54657A">Tink envelope encryption:</text>
+    <text x="52" y="119" font-size="12" fill="#54657A">AES-256-GCM DEK per bundle</text>
+    <rect x="40" y="140" width="220" height="60" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="52" y="164" font-size="14" font-weight="600" fill="#14202E">Vendor HPKE key pair</text>
+    <text x="52" y="182" font-size="12" fill="#54657A">public key registered at onboarding</text>
+    <rect x="40" y="212" width="220" height="82" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="52" y="236" font-size="14" font-weight="600" fill="#14202E">Verifier tooling</text>
+    <text x="52" y="254" font-size="12" fill="#54657A">checks EAT token, image digest,</text>
+    <text x="52" y="269" font-size="12" fill="#54657A">Rekor inclusion; HPKE-decrypts</text>
+    <text x="52" y="284" font-size="12" fill="#54657A">the detailed report</text>
+    <text x="40" y="330" font-size="12" fill="#1E7F5C" font-weight="600">Plaintext never leaves this zone</text>
+    <text x="40" y="347" font-size="12" fill="#1E7F5C" font-weight="600">unencrypted.</text>
+
+    <!-- ZONE: CONTROL PLANE -->
+    <rect x="315" y="20" width="260" height="345" rx="10" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+    <text x="335" y="48" font-size="12.5" font-weight="700" letter-spacing="1.5" fill="#54657A" font-family="IBM Plex Mono, monospace">CONTROL PLANE</text>
+    <rect x="335" y="62" width="220" height="60" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="347" y="86" font-size="14" font-weight="600" fill="#14202E">API Gateway + Cloud Run</text>
+    <text x="347" y="104" font-size="12" fill="#54657A">tenancy, jobs, billing, notifications</text>
+    <rect x="335" y="134" width="220" height="60" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="347" y="158" font-size="14" font-weight="600" fill="#14202E">GCS · ingest bucket</text>
+    <text x="347" y="176" font-size="12" fill="#54657A">ciphertext only · CMEK · TTL purge</text>
+    <rect x="335" y="206" width="220" height="60" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="347" y="230" font-size="14" font-weight="600" fill="#14202E">Pub/Sub + job launcher</text>
+    <text x="347" y="248" font-size="12" fill="#54657A">one Confidential VM per scan job</text>
+    <rect x="335" y="278" width="220" height="60" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="347" y="302" font-size="14" font-weight="600" fill="#14202E">GCS · results bucket</text>
+    <text x="347" y="320" font-size="12" fill="#54657A">signed artifacts, per-tenant prefix</text>
+    <text x="335" y="357" font-size="12" fill="#54657A" font-style="italic">Sees ciphertext and metadata only.</text>
+
+    <!-- ZONE: TEE -->
+    <rect x="610" y="20" width="570" height="470" rx="12" fill="#FDFEFF" stroke="#1B4FD8" stroke-width="2.5" stroke-dasharray="9 5"/>
+    <text x="632" y="48" font-size="12.5" font-weight="700" letter-spacing="1.5" fill="#1B4FD8" font-family="IBM Plex Mono, monospace">CONFIDENTIAL SPACE TEE</text>
+    <text x="632" y="68" font-size="12" fill="#54657A">Confidential VM · Intel TDX + H100 CC (Phase 1) → Blackwell CC, NVLink-encrypted (Phase 2–3)</text>
+    <text x="632" y="84" font-size="12" fill="#54657A">Hardened OS image: no SSH, no serial console, no exec — enforced by platform, proven by attestation</text>
+
+    <rect x="632" y="100" width="255" height="80" rx="7" fill="#E8EEFC" stroke="#B9CBF4"/>
+    <text x="646" y="124" font-size="14" font-weight="600" fill="#14202E">Launcher &amp; attestation</text>
+    <text x="646" y="142" font-size="12" fill="#54657A">measures boot chain, container</text>
+    <text x="646" y="157" font-size="12" fill="#54657A">digest, GPU firmware (SPDM)</text>
+    <text x="646" y="172" font-size="12" fill="#54657A">→ EAT token with RATS claims</text>
+
+    <rect x="905" y="100" width="255" height="80" rx="7" fill="#E8EEFC" stroke="#B9CBF4"/>
+    <text x="919" y="124" font-size="14" font-weight="600" fill="#14202E">Key release client</text>
+    <text x="919" y="142" font-size="12" fill="#54657A">presents token via Workload</text>
+    <text x="919" y="157" font-size="12" fill="#54657A">Identity Federation → KMS</text>
+    <text x="919" y="172" font-size="12" fill="#54657A">unwraps DEK on digest match</text>
+
+    <rect x="632" y="196" width="255" height="122" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="646" y="220" font-size="14" font-weight="600" fill="#14202E">Deterministic scanners</text>
+    <text x="646" y="238" font-size="12" fill="#54657A">Syft → dependency inventory</text>
+    <text x="646" y="253" font-size="12" fill="#54657A">Grype / Trivy → CVE match</text>
+    <text x="646" y="268" font-size="12" fill="#54657A">Opengrep + project rules → SAST</text>
+    <text x="646" y="283" font-size="12" fill="#54657A">Trivy · Checkov · cfn-nag → IaC</text>
+    <text x="646" y="298" font-size="12" fill="#54657A">Offline vuln DB, version pinned</text>
+
+    <rect x="905" y="196" width="255" height="122" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="919" y="220" font-size="14" font-weight="600" fill="#14202E">LLM analysis engine</text>
+    <text x="919" y="238" font-size="12" fill="#54657A">vLLM · Nemotron 3 Ultra (NVFP4)</text>
+    <text x="919" y="253" font-size="12" fill="#54657A">+ Foundation-sec-8B sidecar</text>
+    <text x="919" y="268" font-size="12" fill="#54657A">triage · exploitability · CWE →</text>
+    <text x="919" y="283" font-size="12" fill="#54657A">OWASP + MITRE ATT&amp;CK map</text>
+    <text x="919" y="298" font-size="12" fill="#54657A">narrative for both report tiers</text>
+
+    <rect x="632" y="334" width="528" height="104" rx="7" fill="#E5F3ED" stroke="#BADCCB"/>
+    <text x="646" y="358" font-size="14" font-weight="600" fill="#14202E">Output &amp; signing stage</text>
+    <text x="646" y="376" font-size="12" fill="#54657A">SBOM + AIBOM (CycloneDX) · detailed report HPKE-encrypted to vendor public key</text>
+    <text x="646" y="391" font-size="12" fill="#54657A">shareable summary (template-driven, non-prescriptive) · all three signed via KMS</text>
+    <text x="646" y="406" font-size="12" fill="#54657A">in-toto provenance statement · Rekor log entry · zeroize plaintext + DEK · VM ends</text>
+    <text x="646" y="426" font-size="12" font-weight="600" fill="#1E7F5C">Plaintext lifetime = one job, one VM, minutes.</text>
+
+    <text x="632" y="468" font-size="12" fill="#1B4FD8" font-family="IBM Plex Mono, monospace">EGRESS LOCKED: KMS · GCS · ATTESTATION APIS ONLY (VPC-SC + PRIVATE GOOGLE ACCESS)</text>
+
+    <!-- ZONE: TRUST SERVICES -->
+    <rect x="20" y="530" width="1160" height="180" rx="10" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+    <text x="40" y="558" font-size="12.5" font-weight="700" letter-spacing="1.5" fill="#54657A" font-family="IBM Plex Mono, monospace">TRUST &amp; SUPPLY-CHAIN SERVICES</text>
+    <rect x="40" y="574" width="208" height="112" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="54" y="598" font-size="13.5" font-weight="600" fill="#14202E">Cloud KMS / Cloud HSM</text>
+    <text x="54" y="616" font-size="11.5" fill="#54657A">DEK-unwrap key + artifact-</text>
+    <text x="54" y="630" font-size="11.5" fill="#54657A">signing key; IAM conditions</text>
+    <text x="54" y="644" font-size="11.5" fill="#54657A">bound to attestation claims</text>
+    <text x="54" y="658" font-size="11.5" fill="#54657A">(image digest, hw model,</text>
+    <text x="54" y="672" font-size="11.5" fill="#54657A">sw versions, debug=false)</text>
+    <rect x="272" y="574" width="208" height="112" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="286" y="598" font-size="13.5" font-weight="600" fill="#14202E">Google Cloud Attestation</text>
+    <text x="286" y="616" font-size="11.5" fill="#54657A">verifies SEV-SNP/TDX +</text>
+    <text x="286" y="630" font-size="11.5" fill="#54657A">NVIDIA GPU evidence, issues</text>
+    <text x="286" y="644" font-size="11.5" fill="#54657A">EAT tokens; Intel Tiber Trust</text>
+    <text x="286" y="658" font-size="11.5" fill="#54657A">Authority as independent</text>
+    <text x="286" y="672" font-size="11.5" fill="#54657A">second verifier (optional)</text>
+    <rect x="504" y="574" width="208" height="112" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="518" y="598" font-size="13.5" font-weight="600" fill="#14202E">Artifact Registry</text>
+    <text x="518" y="616" font-size="11.5" fill="#54657A">workload container (cosign-</text>
+    <text x="518" y="630" font-size="11.5" fill="#54657A">signed, reproducible build),</text>
+    <text x="518" y="644" font-size="11.5" fill="#54657A">model weights + scanner DBs</text>
+    <text x="518" y="658" font-size="11.5" fill="#54657A">as OCI artifacts, hashes fixed</text>
+    <text x="518" y="672" font-size="11.5" fill="#54657A">in the published AIBOM</text>
+    <rect x="736" y="574" width="208" height="112" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="750" y="598" font-size="13.5" font-weight="600" fill="#14202E">Sigstore / Rekor</text>
+    <text x="750" y="616" font-size="11.5" fill="#54657A">public transparency log for</text>
+    <text x="750" y="630" font-size="11.5" fill="#54657A">image signatures and per-job</text>
+    <text x="750" y="644" font-size="11.5" fill="#54657A">artifact signatures; relying</text>
+    <text x="750" y="658" font-size="11.5" fill="#54657A">parties verify inclusion</text>
+    <text x="750" y="672" font-size="11.5" fill="#54657A">without contacting operator</text>
+    <rect x="968" y="574" width="192" height="112" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+    <text x="982" y="598" font-size="13.5" font-weight="600" fill="#14202E">Cloud Logging</text>
+    <text x="982" y="616" font-size="11.5" fill="#54657A">job metadata, attestation</text>
+    <text x="982" y="630" font-size="11.5" fill="#54657A">outcomes, billing events,</text>
+    <text x="982" y="644" font-size="11.5" fill="#54657A">audit trail — payload</text>
+    <text x="982" y="658" font-size="11.5" fill="#54657A">content structurally</text>
+    <text x="982" y="672" font-size="11.5" fill="#54657A">absent, not just redacted</text>
+
+    <!-- ARROWS -->
+    <line x1="280" y1="165" x2="333" y2="164" stroke="#54657A" stroke-width="1.6" marker-end="url(#a1)"/>
+    <text x="284" y="152" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">ciphertext</text>
+    <line x1="575" y1="164" x2="630" y2="140" stroke="#54657A" stroke-width="1.6" marker-end="url(#a1)"/>
+    <text x="560" y="128" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">fetch bundle</text>
+    <line x1="575" y1="236" x2="608" y2="236" stroke="#54657A" stroke-width="1.6" marker-end="url(#a1)"/>
+    <text x="530" y="260" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">launch</text>
+    <line x1="630" y1="386" x2="577" y2="316" stroke="#1E7F5C" stroke-width="1.8" marker-end="url(#a2)"/>
+    <text x="522" y="345" font-size="11" fill="#1E7F5C" font-family="IBM Plex Mono, monospace">signed</text>
+    <text x="514" y="359" font-size="11" fill="#1E7F5C" font-family="IBM Plex Mono, monospace">outputs</text>
+    <line x1="333" y1="308" x2="282" y2="308" stroke="#1E7F5C" stroke-width="1.8" marker-end="url(#a2)"/>
+    <text x="288" y="298" font-size="11" fill="#1E7F5C" font-family="IBM Plex Mono, monospace">download</text>
+    <line x1="895" y1="490" x2="895" y2="528" stroke="#1B4FD8" stroke-width="1.8" marker-end="url(#a3)" marker-start="url(#a3)"/>
+    <text x="905" y="514" font-size="11" fill="#1B4FD8" font-family="IBM Plex Mono, monospace">attest · unwrap · sign</text>
+    <line x1="150" y1="365" x2="150" y2="528" stroke="#54657A" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#a1)"/>
+    <text x="160" y="450" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">independent verification</text>
+    <text x="160" y="464" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">(Rekor + attestation)</text>
+  </svg>
+  <figcaption><b>Fig. 2 — System architecture.</b> The dashed blue boundary is the only place plaintext ever exists.
+  The vendor's verification path (dashed) reaches the trust layer directly, bypassing the operator entirely.</figcaption>
+  </figure>
+</section>
+
+<section id="workflow">
+  <div class="sec-head"><span class="sec-num">04</span><h2>End-to-end workflow</h2></div>
+  <p>Two phases. Onboarding happens once per workload release and once per vendor; it establishes what "trusted image"
+  means before any data moves. The per-job flow then runs fully unattended — one single-tenant Confidential VM per scan,
+  born for the job and destroyed with it.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1160 1010" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="Sequence diagram of the scan workflow">
+    <defs>
+      <marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#14202E"/></marker>
+      <marker id="s2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1B4FD8"/></marker>
+      <marker id="s3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1E7F5C"/></marker>
+    </defs>
+
+    <!-- lifeline headers -->
+    <g font-size="13.5" font-weight="600" fill="#14202E" text-anchor="middle">
+      <rect x="40" y="18" width="150" height="46" rx="8" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="115" y="46">Vendor</text>
+      <rect x="255" y="18" width="170" height="46" rx="8" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="340" y="40">Control plane</text>
+      <text x="340" y="56" font-size="10.5" font-weight="400" fill="#54657A">API · GCS · Pub/Sub</text>
+      <rect x="500" y="18" width="200" height="46" rx="8" fill="#E8EEFC" stroke="#1B4FD8" stroke-width="2" stroke-dasharray="7 4"/>
+      <text x="600" y="40" fill="#1B4FD8">Confidential workload</text>
+      <text x="600" y="56" font-size="10.5" font-weight="400" fill="#54657A">CVM + GPU in CC mode</text>
+      <rect x="765" y="18" width="170" height="46" rx="8" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="850" y="40">GCP Attestation</text>
+      <text x="850" y="56" font-size="10.5" font-weight="400" fill="#54657A">+ Intel Tiber (opt.)</text>
+      <rect x="985" y="18" width="150" height="46" rx="8" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="1060" y="46">Cloud KMS</text>
+    </g>
+
+    <!-- lifelines -->
+    <g stroke="#D8DFE7" stroke-width="1.5">
+      <line x1="115" y1="64" x2="115" y2="975"/>
+      <line x1="340" y1="64" x2="340" y2="975"/>
+      <line x1="600" y1="64" x2="600" y2="975" stroke="#B9CBF4"/>
+      <line x1="850" y1="64" x2="850" y2="975"/>
+      <line x1="1060" y1="64" x2="1060" y2="975"/>
+    </g>
+
+    <!-- phase band: onboarding -->
+    <rect x="30" y="86" width="1116" height="26" rx="5" fill="#EDF1F5"/>
+    <text x="46" y="104" font-size="11.5" font-weight="700" letter-spacing="1.2" fill="#54657A" font-family="IBM Plex Mono, monospace">PHASE A — ONE-TIME ONBOARDING (PER RELEASE / PER VENDOR)</text>
+
+    <g font-size="12.5" fill="#14202E">
+      <!-- 1 -->
+      <line x1="600" y1="140" x2="342" y2="140" stroke="#14202E" stroke-width="1.6" marker-end="url(#s1)"/>
+      <text x="360" y="130"><tspan font-weight="700" fill="#1B4FD8">1</tspan>  Operator publishes signed workload image, measurements,</text>
+      <text x="374" y="156" fill="#54657A" font-size="11.5">reproducible-build recipe, third-party audit report → Rekor</text>
+      <!-- 2 -->
+      <line x1="117" y1="196" x2="338" y2="196" stroke="#14202E" stroke-width="1.6" marker-end="url(#s1)"/>
+      <text x="132" y="186"><tspan font-weight="700" fill="#1B4FD8">2</tspan>  Vendor audits image, registers HPKE public key,</text>
+      <text x="146" y="212" fill="#54657A" font-size="11.5">pins accepted image digest(s) for their tenant</text>
+
+      <!-- phase band: per-job -->
+      <rect x="30" y="238" width="1116" height="26" rx="5" fill="#EDF1F5"/>
+      <text x="46" y="256" font-size="11.5" font-weight="700" letter-spacing="1.2" fill="#54657A" font-family="IBM Plex Mono, monospace">PHASE B — PER SCAN JOB (FULLY UNATTENDED)</text>
+
+      <!-- 3 -->
+      <line x1="117" y1="296" x2="338" y2="296" stroke="#14202E" stroke-width="1.6" marker-end="url(#s1)"/>
+      <text x="132" y="286"><tspan font-weight="700" fill="#1B4FD8">3</tspan>  Encrypt bundle with fresh DEK; wrap DEK to service</text>
+      <text x="146" y="312" fill="#54657A" font-size="11.5">KMS key; upload ciphertext via signed URL</text>
+      <!-- 4 -->
+      <line x1="342" y1="352" x2="598" y2="352" stroke="#14202E" stroke-width="1.6" marker-end="url(#s1)"/>
+      <text x="358" y="342"><tspan font-weight="700" fill="#1B4FD8">4</tspan>  Pub/Sub fires → launch single-tenant Confidential</text>
+      <text x="372" y="368" fill="#54657A" font-size="11.5">Space VM (GPU in CC mode) from pinned image</text>
+      <!-- 5 -->
+      <line x1="602" y1="408" x2="848" y2="408" stroke="#1B4FD8" stroke-width="1.8" marker-end="url(#s2)"/>
+      <text x="618" y="398" fill="#1B4FD8"><tspan font-weight="700">5</tspan>  Submit evidence: boot chain, container digest,</text>
+      <text x="632" y="424" fill="#54657A" font-size="11.5">GPU firmware state (SPDM measurements)</text>
+      <!-- 6 -->
+      <line x1="848" y1="460" x2="602" y2="460" stroke="#1B4FD8" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#s2)"/>
+      <text x="618" y="450" fill="#1B4FD8"><tspan font-weight="700">6</tspan>  EAT token issued (RATS claims incl. nvidia_gpu,</text>
+      <text x="632" y="476" fill="#54657A" font-size="11.5">image digest, debug=false)</text>
+      <!-- 7 -->
+      <line x1="602" y1="516" x2="1058" y2="516" stroke="#1B4FD8" stroke-width="1.8" marker-end="url(#s2)"/>
+      <text x="618" y="506" fill="#1B4FD8"><tspan font-weight="700">7</tspan>  Present token via Workload Identity Federation; request DEK unwrap</text>
+      <!-- 8 -->
+      <line x1="1058" y1="562" x2="602" y2="562" stroke="#1B4FD8" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#s2)"/>
+      <text x="618" y="552" fill="#1B4FD8"><tspan font-weight="700">8</tspan>  IAM condition matches pinned digest → DEK released into TEE memory only</text>
+
+      <!-- 9 self box -->
+      <rect x="470" y="590" width="260" height="88" rx="7" fill="#E8EEFC" stroke="#B9CBF4"/>
+      <text x="486" y="612" fill="#1B4FD8"><tspan font-weight="700">9</tspan>  Inside the TEE:</text>
+      <text x="486" y="630" font-size="11.5" fill="#54657A">decrypt to tmpfs · Syft/Grype SCA ·</text>
+      <text x="486" y="645" font-size="11.5" fill="#54657A">Opengrep SAST · Trivy/Checkov IaC ·</text>
+      <text x="486" y="660" font-size="11.5" fill="#54657A">LLM triage + OWASP/ATT&amp;CK mapping</text>
+      <text x="486" y="675" font-size="11.5" fill="#54657A">→ structured findings (JSON)</text>
+
+      <!-- 10 -->
+      <line x1="602" y1="714" x2="1058" y2="714" stroke="#1E7F5C" stroke-width="1.8" marker-end="url(#s3)"/>
+      <text x="618" y="704" fill="#1E7F5C"><tspan font-weight="700">10</tspan>  Sign SBOM/AIBOM, both reports, in-toto provenance (signing key</text>
+      <text x="640" y="730" fill="#54657A" font-size="11.5">also attestation-gated — signatures prove "made by audited pipeline")</text>
+      <!-- 11 -->
+      <line x1="598" y1="768" x2="342" y2="768" stroke="#1E7F5C" stroke-width="1.8" marker-end="url(#s3)"/>
+      <text x="358" y="758" fill="#1E7F5C"><tspan font-weight="700">11</tspan>  Write outputs to results bucket; append signatures to Rekor</text>
+
+      <!-- 12 self box -->
+      <rect x="470" y="790" width="260" height="58" rx="7" fill="#F6F8FA" stroke="#D8DFE7"/>
+      <text x="486" y="812"><tspan font-weight="700" fill="#1B4FD8">12</tspan>  Zeroize plaintext + DEK,</text>
+      <text x="486" y="830" font-size="11.5" fill="#54657A">wipe tmpfs · VM terminates (memory keys die with it)</text>
+
+      <!-- 13 -->
+      <line x1="338" y1="884" x2="117" y2="884" stroke="#14202E" stroke-width="1.6" marker-end="url(#s1)"/>
+      <text x="132" y="874"><tspan font-weight="700" fill="#1B4FD8">13</tspan>  Notify vendor; signed URLs for the three artifacts</text>
+
+      <!-- 14 self box -->
+      <rect x="40" y="906" width="300" height="58" rx="7" fill="#E5F3ED" stroke="#BADCCB"/>
+      <text x="56" y="928"><tspan font-weight="700" fill="#1E7F5C">14</tspan>  Vendor verifies: signatures, EAT claims,</text>
+      <text x="56" y="946" font-size="11.5" fill="#54657A">Rekor inclusion → HPKE-decrypts detailed report</text>
+    </g>
+  </svg>
+  <figcaption><b>Fig. 3 — Workflow sequence.</b> Blue messages (5–8) are the attestation-gated key release: the only path
+  by which a decryption key can ever reach the workload, and it requires cryptographic proof of the exact audited image.</figcaption>
+  </figure>
+
+  <div class="callout">
+    <span class="kicker">Why key release is the linchpin</span>
+    <p>The KMS key that unwraps vendor DEKs carries an IAM binding whose principal is the Confidential Space workload
+    identity pool, with attribute conditions on the EAT claims: container image digest equals the published value,
+    hardware model is a confidential SKU, GPU CC mode is active, and the debug/monitoring flags are false. Change one
+    byte of the workload image and the digest changes, the condition fails, and no key is ever released. This converts
+    "trust our operations" into "verify our binary."</p>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Inside the enclave — processing pipeline</h2></div>
+  <p>Deterministic tools make the claims; the model makes the judgments. Every CVE in the output traces to a scanner
+  and a pinned database version recorded in the SBOM. The LLM consumes structured scanner output plus source context,
+  and its contributions — triage, exploitability reasoning, OWASP and MITRE mappings, narrative — are labeled as analysis.
+  It cannot invent a CVE ID into the findings set because findings are scanner-owned fields.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1160 430" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="In-enclave processing pipeline">
+    <defs>
+      <marker id="p1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1B4FD8"/></marker>
+    </defs>
+    <rect x="14" y="14" width="1132" height="402" rx="12" fill="#FDFEFF" stroke="#1B4FD8" stroke-width="2.5" stroke-dasharray="9 5"/>
+    <text x="36" y="44" font-size="12.5" font-weight="700" letter-spacing="1.5" fill="#1B4FD8" font-family="IBM Plex Mono, monospace">TEE BOUNDARY — ENCRYPTED RAM (TDX / SEV-SNP) + ENCRYPTED GPU MEMORY &amp; NVLINK (BLACKWELL CC)</text>
+
+    <g font-size="13" fill="#14202E">
+      <rect x="36" y="66" width="196" height="130" rx="8" fill="#F6F8FA" stroke="#D8DFE7"/>
+      <text x="50" y="92" font-size="14" font-weight="600">1 · Stage &amp; decrypt</text>
+      <text x="50" y="112" font-size="11.5" fill="#54657A">DEK from attested KMS</text>
+      <text x="50" y="127" font-size="11.5" fill="#54657A">unwrap; plaintext to</text>
+      <text x="50" y="142" font-size="11.5" fill="#54657A">tmpfs only (RAM-backed,</text>
+      <text x="50" y="157" font-size="11.5" fill="#54657A">so itself encrypted);</text>
+      <text x="50" y="172" font-size="11.5" fill="#54657A">language + IaC detection</text>
+
+      <rect x="264" y="66" width="196" height="130" rx="8" fill="#F6F8FA" stroke="#D8DFE7"/>
+      <text x="278" y="92" font-size="14" font-weight="600">2 · Inventory + CVE</text>
+      <text x="278" y="112" font-size="11.5" fill="#54657A">Syft walks manifests and</text>
+      <text x="278" y="127" font-size="11.5" fill="#54657A">lockfiles; Grype/Trivy</text>
+      <text x="278" y="142" font-size="11.5" fill="#54657A">match against offline,</text>
+      <text x="278" y="157" font-size="11.5" fill="#54657A">version-pinned vuln DB</text>
+      <text x="278" y="172" font-size="11.5" fill="#54657A">(NVD, GHSA, OSV)</text>
+
+      <rect x="492" y="66" width="196" height="130" rx="8" fill="#F6F8FA" stroke="#D8DFE7"/>
+      <text x="506" y="92" font-size="14" font-weight="600">3 · SAST + IaC rules</text>
+      <text x="506" y="112" font-size="11.5" fill="#54657A">Opengrep, project-owned</text>
+      <text x="506" y="127" font-size="11.5" fill="#54657A">rules; Trivy + Checkov</text>
+      <text x="506" y="142" font-size="11.5" fill="#54657A">(Terraform) and</text>
+      <text x="506" y="157" font-size="11.5" fill="#54657A">cfn-nag (CloudFormation);</text>
+      <text x="506" y="172" font-size="11.5" fill="#54657A">findings normalized to CWE</text>
+
+      <rect x="720" y="66" width="196" height="130" rx="8" fill="#E8EEFC" stroke="#B9CBF4"/>
+      <text x="734" y="92" font-size="14" font-weight="600">4 · LLM analysis</text>
+      <text x="734" y="112" font-size="11.5" fill="#54657A">Nemotron 3 Ultra on vLLM:</text>
+      <text x="734" y="127" font-size="11.5" fill="#54657A">dedupe + triage, false-</text>
+      <text x="734" y="142" font-size="11.5" fill="#54657A">positive pruning, reach-</text>
+      <text x="734" y="157" font-size="11.5" fill="#54657A">ability reasoning, logic</text>
+      <text x="734" y="172" font-size="11.5" fill="#54657A">flaws scanners miss</text>
+
+      <rect x="948" y="66" width="176" height="130" rx="8" fill="#E5F3ED" stroke="#BADCCB"/>
+      <text x="962" y="92" font-size="14" font-weight="600">5 · Build + sign</text>
+      <text x="962" y="112" font-size="11.5" fill="#54657A">two report tiers +</text>
+      <text x="962" y="127" font-size="11.5" fill="#54657A">SBOM/AIBOM; HPKE</text>
+      <text x="962" y="142" font-size="11.5" fill="#54657A">encrypt detailed tier;</text>
+      <text x="962" y="157" font-size="11.5" fill="#54657A">KMS-sign everything;</text>
+      <text x="962" y="172" font-size="11.5" fill="#54657A">zeroize; exit</text>
+
+      <line x1="232" y1="131" x2="262" y2="131" stroke="#1B4FD8" stroke-width="2" marker-end="url(#p1)"/>
+      <line x1="460" y1="131" x2="490" y2="131" stroke="#1B4FD8" stroke-width="2" marker-end="url(#p1)"/>
+      <line x1="688" y1="131" x2="718" y2="131" stroke="#1B4FD8" stroke-width="2" marker-end="url(#p1)"/>
+      <line x1="916" y1="131" x2="946" y2="131" stroke="#1B4FD8" stroke-width="2" marker-end="url(#p1)"/>
+
+      <!-- mapping lane -->
+      <rect x="36" y="226" width="1088" height="80" rx="8" fill="#F6F8FA" stroke="#D8DFE7"/>
+      <text x="50" y="252" font-size="13" font-weight="600" fill="#14202E">Framework mapping (LLM-assisted, rule-anchored)</text>
+      <text x="50" y="274" font-size="12" fill="#54657A" font-family="IBM Plex Mono, monospace">finding → CWE → OWASP Top 10 / OWASP Top 10 for IaC &amp; LLM Apps · CWE → CAPEC → MITRE ATT&amp;CK technique (T-IDs)</text>
+      <text x="50" y="294" font-size="12" fill="#54657A">Static crosswalk tables provide the candidate mappings; the model selects and justifies, and every mapping carries its evidence pointer.</text>
+
+      <!-- GPU note -->
+      <rect x="36" y="326" width="1088" height="66" rx="8" fill="#FFFFFF" stroke="#B9CBF4"/>
+      <text x="50" y="352" font-size="13" font-weight="600" fill="#1B4FD8">GPU Confidential Computing mode (Hopper → Blackwell)</text>
+      <text x="50" y="374" font-size="12" fill="#54657A">Weights (hash pinned in AIBOM) load into protected GPU memory. Hopper encrypts CPU↔GPU traffic via bounce buffers; Blackwell adds TDISP/IDE inline encryption and encrypted NVLink between GPUs, so multi-GPU models stay inside the TEE.</text>
+    </g>
+  </svg>
+  <figcaption><b>Fig. 4 — Processing pipeline.</b> Stages 2–3 own factual findings; stage 4 owns judgment; stage 5 owns
+  packaging. The separation is what makes each output claim auditable.</figcaption>
+  </figure>
+</section>
+
+<section id="artifacts">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Output artifacts &amp; provenance chain</h2></div>
+  <p>Each job emits three signed documents, and one provenance statement binds them to the inputs and the exact
+  workload that produced them. The signing key lives in Cloud KMS behind the same attestation condition as the
+  decryption key — so a valid signature is itself evidence that the audited, unmodified pipeline ran.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1160 470" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="Provenance and signing chain">
+    <defs>
+      <marker id="g1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1E7F5C"/></marker>
+    </defs>
+    <g font-size="12.5" fill="#14202E">
+      <!-- inputs -->
+      <text x="36" y="36" font-size="12" font-weight="700" letter-spacing="1.3" fill="#54657A" font-family="IBM Plex Mono, monospace">BOUND INPUTS</text>
+      <rect x="36" y="50" width="250" height="44" rx="7" fill="#FFFFFF" stroke="#D8DFE7"/>
+      <text x="50" y="70" font-weight="600">Vendor bundle digest</text>
+      <text x="50" y="86" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">sha256 of ciphertext + plaintext</text>
+      <rect x="36" y="104" width="250" height="44" rx="7" fill="#FFFFFF" stroke="#D8DFE7"/>
+      <text x="50" y="124" font-weight="600">Workload image digest</text>
+      <text x="50" y="140" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">matches EAT claim + Rekor entry</text>
+      <rect x="36" y="158" width="250" height="44" rx="7" fill="#FFFFFF" stroke="#D8DFE7"/>
+      <text x="50" y="178" font-weight="600">Model weights hash</text>
+      <text x="50" y="194" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">Nemotron 3 Ultra NVFP4 · per AIBOM</text>
+      <rect x="36" y="212" width="250" height="44" rx="7" fill="#FFFFFF" stroke="#D8DFE7"/>
+      <text x="50" y="232" font-weight="600">Scanner DB versions</text>
+      <text x="50" y="248" font-size="11" fill="#54657A" font-family="IBM Plex Mono, monospace">Grype/Trivy/Opengrep/Checkov</text>
+
+      <!-- chain -->
+      <rect x="356" y="94" width="240" height="120" rx="8" fill="#E5F3ED" stroke="#BADCCB"/>
+      <text x="372" y="120" font-size="14" font-weight="600">in-toto / SLSA statement</text>
+      <text x="372" y="140" font-size="11.5" fill="#54657A">subject: three artifact digests</text>
+      <text x="372" y="155" font-size="11.5" fill="#54657A">materials: the four bound inputs</text>
+      <text x="372" y="170" font-size="11.5" fill="#54657A">builder: workload identity +</text>
+      <text x="372" y="185" font-size="11.5" fill="#54657A">full EAT token embedded</text>
+
+      <rect x="656" y="94" width="200" height="120" rx="8" fill="#E5F3ED" stroke="#BADCCB"/>
+      <text x="672" y="120" font-size="14" font-weight="600">KMS signature</text>
+      <text x="672" y="140" font-size="11.5" fill="#54657A">ECDSA-P384 key, HSM-</text>
+      <text x="672" y="155" font-size="11.5" fill="#54657A">backed, releasable only</text>
+      <text x="672" y="170" font-size="11.5" fill="#54657A">to attested workload</text>
+      <text x="672" y="185" font-size="11.5" fill="#54657A">(same IAM condition)</text>
+
+      <rect x="916" y="94" width="208" height="120" rx="8" fill="#E5F3ED" stroke="#BADCCB"/>
+      <text x="932" y="120" font-size="14" font-weight="600">Rekor entry</text>
+      <text x="932" y="140" font-size="11.5" fill="#54657A">public, append-only log;</text>
+      <text x="932" y="155" font-size="11.5" fill="#54657A">relying parties verify</text>
+      <text x="932" y="170" font-size="11.5" fill="#54657A">inclusion proof offline,</text>
+      <text x="932" y="185" font-size="11.5" fill="#54657A">no operator contact</text>
+
+      <line x1="290" y1="154" x2="352" y2="154" stroke="#1E7F5C" stroke-width="2" marker-end="url(#g1)"/>
+      <line x1="598" y1="154" x2="652" y2="154" stroke="#1E7F5C" stroke-width="2" marker-end="url(#g1)"/>
+      <line x1="858" y1="154" x2="912" y2="154" stroke="#1E7F5C" stroke-width="2" marker-end="url(#g1)"/>
+
+      <!-- artifacts -->
+      <text x="36" y="292" font-size="12" font-weight="700" letter-spacing="1.3" fill="#54657A" font-family="IBM Plex Mono, monospace">SIGNED DELIVERABLES (PER JOB)</text>
+      <rect x="36" y="308" width="352" height="130" rx="8" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="52" y="334" font-size="14" font-weight="600">SBOM + AIBOM of the service</text>
+      <text x="52" y="354" font-size="11.5" fill="#54657A">CycloneDX 1.6 · SBOM: every scanner, library,</text>
+      <text x="52" y="369" font-size="11.5" fill="#54657A">and DB in the workload image · AIBOM (ML-BOM</text>
+      <text x="52" y="384" font-size="11.5" fill="#54657A">profile): model name/version, weight hashes,</text>
+      <text x="52" y="399" font-size="11.5" fill="#54657A">quantization, inference stack, prompt-template</text>
+      <text x="52" y="414" font-size="11.5" fill="#54657A">version · cleartext, publicly shareable</text>
+      <rect x="404" y="308" width="352" height="130" rx="8" fill="#FFFFFF" stroke="#1B4FD8" stroke-width="1.5"/>
+      <text x="420" y="334" font-size="14" font-weight="600" fill="#1B4FD8">Detailed vulnerability report</text>
+      <text x="420" y="354" font-size="11.5" fill="#54657A">CVEs + SAST/IaC findings with file/line evidence,</text>
+      <text x="420" y="369" font-size="11.5" fill="#54657A">OWASP + MITRE ATT&amp;CK mappings, remediation</text>
+      <text x="420" y="384" font-size="11.5" fill="#54657A">guidance · HPKE-encrypted to the vendor's</text>
+      <text x="420" y="399" font-size="11.5" fill="#54657A">public key inside the TEE — the operator</text>
+      <text x="420" y="414" font-size="11.5" fill="#54657A">stores it but can never read it</text>
+      <rect x="772" y="308" width="352" height="130" rx="8" fill="#FFFFFF" stroke="#1E7F5C" stroke-width="1.5"/>
+      <text x="788" y="334" font-size="14" font-weight="600" fill="#1E7F5C">Shareable assurance report</text>
+      <text x="788" y="354" font-size="11.5" fill="#54657A">Template-rendered from structured counts only:</text>
+      <text x="788" y="369" font-size="11.5" fill="#54657A">findings by OWASP category, ATT&amp;CK technique</text>
+      <text x="788" y="384" font-size="11.5" fill="#54657A">coverage, severity distribution, scan scope +</text>
+      <text x="788" y="399" font-size="11.5" fill="#54657A">date. No file names, no code, nothing</text>
+      <text x="788" y="414" font-size="11.5" fill="#54657A">prescriptive — safe for prospects' security teams</text>
+    </g>
+  </svg>
+  <figcaption><b>Fig. 5 — Provenance chain.</b> The shareable report is generated by a fixed template over structured
+  counts — a structural guarantee that nothing prescriptive can leak, rather than a promise that the LLM summarized carefully.</figcaption>
+  </figure>
+
+  <div class="callout green">
+    <span class="kicker">Redaction as architecture, not behavior</span>
+    <p>The shareable report's renderer receives only the aggregated findings table — category, technique ID, severity,
+    count. It has no access to file paths, snippets, or remediation text. Leakage into the public tier is therefore
+    impossible by construction, which is exactly the argument the vendor's counsel and the relying party's security
+    reviewers will want to hear.</p>
+  </div>
+</section>
+
+<section id="components">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Component inventory</h2></div>
+  <table>
+    <thead><tr><th style="width:20%">GCP service</th><th style="width:34%">Role</th><th>Critical configuration</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Confidential Space</td><td>Execution environment for the scan workload; enforces no-operator-access at the platform layer.</td><td><span class="cfg">confidential-space image (not the debug variant) · monitoring disabled · restart policy: never</span></td></tr>
+      <tr><td class="svc">Compute Engine GPU shape</td><td>Phase 1: A3 (Intel TDX + 1× H100 CC, GA). Phase 2–3: Blackwell confidential shapes (G4 in preview; B200-class when offered). One VM per job.</td><td><span class="cfg">Secure Boot on · TDX preferred on A3 · GPU CC mode verified via nvtrust / NRAS · pin minimum TCB / firmware versions in KMS conditions</span></td></tr>
+      <tr><td class="svc">Cloud KMS / Cloud HSM</td><td>Holds the DEK-unwrap key and artifact-signing key; the attestation-gated release point.</td><td><span class="cfg">IAM principal = workload identity pool · conditions on image_digest, hw_model, dbgstat=disabled, nvidia_gpu claims</span></td></tr>
+      <tr><td class="svc">Google Cloud Attestation</td><td>Verifies CPU + GPU evidence, issues EAT/RATS tokens consumed by IAM and by vendors.</td><td><span class="cfg">passport model · optional dual verification via Intel Tiber Trust Authority for separation of duties</span></td></tr>
+      <tr><td class="svc">Workload Identity Federation</td><td>Maps attestation tokens to IAM principals so key policies bind to measurements, not service accounts.</td><td><span class="cfg">attribute mappings expose EAT claims to IAM conditions</span></td></tr>
+      <tr><td class="svc">Cloud Storage</td><td>Ingest bucket (ciphertext in), results bucket (signed artifacts out).</td><td><span class="cfg">CMEK · uniform bucket-level access · per-tenant prefixes · lifecycle TTL on ingest · signed URLs only</span></td></tr>
+      <tr><td class="svc">Pub/Sub + Cloud Run</td><td>Control plane: job intake, VM launch via instance templates, vendor notification.</td><td><span class="cfg">launcher SA can create VMs but holds zero KMS decrypt/sign permissions</span></td></tr>
+      <tr><td class="svc">Artifact Registry</td><td>Workload container, model weights, scanner rule/DB bundles as versioned OCI artifacts.</td><td><span class="cfg">cosign signatures · Binary Authorization attestor · immutable tags · reproducible builds via Cloud Build</span></td></tr>
+      <tr><td class="svc">VPC Service Controls</td><td>Perimeter around the data project; blocks exfiltration paths even from a compromised workload.</td><td><span class="cfg">egress limited to KMS, GCS, attestation endpoints · Private Google Access · no external IPs · no Cloud NAT</span></td></tr>
+      <tr><td class="svc">Cloud Logging / Monitoring</td><td>Audit trail of job lifecycle, attestation outcomes, key-release decisions.</td><td><span class="cfg">workload writes structured status events only — payload fields do not exist in the log schema</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="dataflow">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Data-state matrix</h2></div>
+  <p>The confidentiality argument, stated as a table: for every state the vendor's data passes through, what protects it
+  and who could read it.</p>
+  <table>
+    <thead><tr><th style="width:26%">Data / state</th><th style="width:24%">Where it lives</th><th style="width:28%">Protection</th><th>Readable by</th></tr></thead>
+    <tbody>
+      <tr><td>Code + IaC, at rest pre-scan</td><td>GCS ingest bucket</td><td>Vendor DEK (AES-256-GCM) under KMS wrap, plus CMEK at the storage layer</td><td><span class="tag none">no one</span></td></tr>
+      <tr><td>Code + IaC, in transit</td><td>Vendor → GCS · GCS → TEE</td><td>TLS 1.3 over ciphertext (double-wrapped)</td><td><span class="tag none">no one</span></td></tr>
+      <tr><td>Code + IaC, in use</td><td>TEE tmpfs / RAM / VRAM</td><td>TDX or SEV-SNP memory encryption; GPU CC mode (Blackwell adds encrypted NVLink + TDISP/IDE); no operator ingress</td><td><span class="tag tee">attested workload only</span></td></tr>
+      <tr><td>Data-encryption key (DEK)</td><td>KMS-wrapped blob · TEE memory</td><td>Release gated on EAT claims; zeroized at job end</td><td><span class="tag tee">attested workload only</span></td></tr>
+      <tr><td>Detailed report, at rest</td><td>GCS results bucket</td><td>HPKE-encrypted to vendor public key inside the TEE</td><td><span class="tag none">vendor only</span></td></tr>
+      <tr><td>SBOM / AIBOM / shareable report</td><td>GCS results bucket · vendor's prospects</td><td>Cleartext by design; KMS-signed; Rekor-logged</td><td><span class="tag ops">public (intended)</span></td></tr>
+      <tr><td>Job metadata (IDs, timings, status)</td><td>Cloud Logging, control-plane DB</td><td>Standard IAM; contains no payload-derived content</td><td><span class="tag ops">operator</span></td></tr>
+      <tr><td>Model weights</td><td>Artifact Registry → TEE VRAM</td><td>Hash-pinned in AIBOM; loaded only into CC-mode GPU</td><td><span class="tag tee">attested workload</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ops">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Operational notes &amp; residual risks</h2></div>
+  <h3>Scaling and tenancy</h3>
+  <p>Isolation is per-job, not per-cluster: each scan gets a fresh Confidential VM from a managed instance group template,
+  which eliminates cross-tenant residue and makes the plaintext lifetime equal to the job duration. Cold start (VM boot,
+  attestation round-trip, weight load into VRAM) runs a few minutes; amortize it for large customers with a warm pool of
+  attested-but-idle VMs that have not yet requested any key — a warm VM holds nothing sensitive until step 7 of Fig. 3.
+  Model footprint follows the phases in section 02: a single-GPU dense coder in Phase 1, then Nemotron 3 Ultra at NVFP4
+  (roughly 275 GB of weights) on a 4–8 GPU Blackwell confidential VM. Keep the same vLLM serving interface across phases so a
+  model swap is a new image digest and AIBOM, not a pipeline change.</p>
+  <h3>Updates without breaking trust</h3>
+  <p>Every workload release is a new image digest, which means every release invalidates the old KMS conditions by
+  default — that is a feature. Publish new measurements, the reproducible-build recipe, and the diff-scoped audit note
+  to Rekor; give vendors a pinning window during which both digests are accepted so their key policies roll forward on
+  their schedule, not yours. Scanner vulnerability databases update on the same rhythm as image releases so that DB
+  contents stay part of the measured, attested TCB.</p>
+  <h3>What this design does not defend against</h3>
+  <p>Honesty here strengthens the sales conversation. The TCB still includes AMD/Intel and NVIDIA silicon and microcode —
+  a hardware vulnerability (and SEV-SNP/TDX errata do occur) is a shared fate with every confidential-computing customer;
+  subscribe to the GCP security bulletins and rotate measurements after firmware fixes. A malicious <em>workload</em> you
+  publish would be attested faithfully — attestation proves identity, not virtue — which is why the third-party audit of
+  the open, reproducible image is a load-bearing part of the product rather than a marketing extra. And side channels
+  within shared hardware remain a research-grade risk; single-tenant-per-job VMs and no-external-egress narrow it
+  substantially but do not make it zero.</p>
+  <p>Track CPU TEE advisories as product events. RMPocalypse (CVE-2025-0033) showed SEV-SNP integrity can fail at the
+  Reverse Map Table on Zen 3–5, and GCP's August 2026 SEV-SNP guest kernel migration changed boot behavior. Encode the
+  minimum patched firmware/TCB version as a KMS key-release condition, so an unpatched host simply cannot obtain keys —
+  this is also why Phase 1 prefers Intel TDX on A3, with Intel Trust Authority as the independent verifier.</p>
+</section>
+
+<section id="open-source">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Open-source project — Confidential Assurance Framework</h2></div>
+  <p class="lede">Rev C publishes the whole system as an Apache-2.0 project. That is not a distribution decision bolted on
+  afterwards: it completes the trust model. Until now, a vendor had to trust an <em>audit report</em> that the measured
+  image was benign. Open source lets them rebuild the image from source, get the same digest, and know that this digest
+  is the only one KMS will release keys to.</p>
+
+  <figure class="diagram">
+  <svg viewBox="0 0 1160 330" xmlns="http://www.w3.org/2000/svg" font-family="Archivo, ui-sans-serif" role="img" aria-label="Reproducible build verification loop">
+    <defs>
+      <marker id="o1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1E7F5C"/></marker>
+      <marker id="o2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#1B4FD8"/></marker>
+    </defs>
+    <g font-size="12.5" fill="#14202E">
+      <rect x="30" y="30" width="230" height="110" rx="9" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="48" y="58" font-size="14.5" font-weight="700">Public source</text>
+      <text x="48" y="80" font-size="11.5" fill="#54657A">workload/, infra/terraform/wip.tf,</text>
+      <text x="48" y="96" font-size="11.5" fill="#54657A">rules/, templates/, lockfile with</text>
+      <text x="48" y="112" font-size="11.5" fill="#54657A">pinned component + model hashes</text>
+
+      <rect x="320" y="30" width="230" height="110" rx="9" fill="#FFFFFF" stroke="#D8DFE7" stroke-width="1.5"/>
+      <text x="338" y="58" font-size="14.5" font-weight="700">Release CI</text>
+      <text x="338" y="80" font-size="11.5" fill="#54657A">reproducible build → digest D</text>
+      <text x="338" y="96" font-size="11.5" fill="#54657A">second clean rebuild must match</text>
+      <text x="338" y="112" font-size="11.5" fill="#54657A">cosign + SLSA provenance → Rekor</text>
+
+      <rect x="610" y="30" width="230" height="110" rx="9" fill="#E8EEFC" stroke="#B9CBF4" stroke-width="1.5"/>
+      <text x="628" y="58" font-size="14.5" font-weight="700">Key-release policy</text>
+      <text x="628" y="80" font-size="11.5" fill="#54657A">WIP condition: image_digest ∈ {D}</text>
+      <text x="628" y="96" font-size="11.5" fill="#54657A">operator KMS key, or the vendor's</text>
+      <text x="628" y="112" font-size="11.5" fill="#54657A">own KMS key granted to D only</text>
+
+      <rect x="900" y="30" width="230" height="110" rx="9" fill="#FDFEFF" stroke="#1B4FD8" stroke-width="2" stroke-dasharray="8 4"/>
+      <text x="918" y="58" font-size="14.5" font-weight="700" fill="#1B4FD8">Confidential Space</text>
+      <text x="918" y="80" font-size="11.5" fill="#54657A">attests D on TDX + GPU CC;</text>
+      <text x="918" y="96" font-size="11.5" fill="#54657A">only then can it unwrap the</text>
+      <text x="918" y="112" font-size="11.5" fill="#54657A">bundle key and sign outputs</text>
+
+      <line x1="262" y1="85" x2="316" y2="85" stroke="#1B4FD8" stroke-width="2" marker-end="url(#o2)"/>
+      <line x1="552" y1="85" x2="606" y2="85" stroke="#1B4FD8" stroke-width="2" marker-end="url(#o2)"/>
+      <line x1="842" y1="85" x2="896" y2="85" stroke="#1B4FD8" stroke-width="2" marker-end="url(#o2)"/>
+
+      <rect x="30" y="200" width="1100" height="100" rx="9" fill="#E5F3ED" stroke="#BADCCB" stroke-width="1.5"/>
+      <text x="48" y="228" font-size="14.5" font-weight="700" fill="#1E7F5C">Independent verifier (vendor, relying party, auditor)</text>
+      <text x="48" y="252" font-size="12" fill="#54657A">1. git checkout tag → make reproduce → digest D′  ·  2. confirm D′ = D in the release notes and the wip.tf condition</text>
+      <text x="48" y="272" font-size="12" fill="#54657A">3. caf verify: signatures, provenance subjects, attestation token signed by Google Cloud Attestation, claims match D</text>
+      <text x="48" y="290" font-size="12" font-weight="600" fill="#1E7F5C">No step requires contacting or trusting the operator.</text>
+      <line x1="145" y1="198" x2="145" y2="144" stroke="#1E7F5C" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#o1)"/>
+      <line x1="725" y1="198" x2="725" y2="144" stroke="#1E7F5C" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#o1)"/>
+      <line x1="1015" y1="198" x2="1015" y2="144" stroke="#1E7F5C" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#o1)"/>
+    </g>
+  </svg>
+  <figcaption><b>Fig. 6 — Reproducible-build trust loop.</b> Open source turns "the image was audited" into "anyone can
+  rebuild the image and confirm it is the only one that can obtain keys."</figcaption>
+  </figure>
+
+  <h3>What is open and what stays private</h3>
+  <table>
+    <thead><tr><th style="width:24%">Component</th><th style="width:16%">Repository path</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Measured workload</td><td><code>workload/</code></td><td>Pipeline, scanner orchestration, report builders, HPKE sealing, KMS signing. Closed logging schema: integer counters only, enforced in code and tested.</td></tr>
+      <tr><td class="svc">Attestation policy</td><td><code>infra/terraform/wip.tf</code></td><td>The exact Workload Identity condition: production image, hardware model, image digest, no command override, only two named launch variables, restart policy Never, GPU CC mode ON.</td></tr>
+      <tr><td class="svc">Deployment IaC</td><td><code>infra/terraform/</code></td><td>HSM-backed KMS keys bound to attested principals; buckets; no-egress network; optional VPC-SC perimeter.</td></tr>
+      <tr><td class="svc">Vendor &amp; verifier CLI</td><td><code>cli/</code></td><td>Keygen, bundle encryption (operator-key or vendor-key mode), verification, report decryption.</td></tr>
+      <tr><td class="svc">Rules, schemas, templates</td><td><code>rules/ schemas/ templates/</code></td><td>Project-owned rules; closed JSON Schemas; the shareable-report template that only sees aggregates.</td></tr>
+      <tr><td class="svc">Model evaluation</td><td><code>eval/</code></td><td>How the analyst model is chosen and re-checked per release; results published with weight hashes.</td></tr>
+      <tr><td class="svc">Stays private</td><td>—</td><td>Only keys (in HSMs, never extractable) and each operator's deployment variables. There are no secrets in the repository, so publishing it costs no confidentiality.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Vendor-key mode: the strongest form of "their keys"</h3>
+  <p>The original requirement was that vendors encrypt with their own keys. Open source makes a stronger option practical.
+  A vendor creates a Cloud KMS key in <em>their own</em> project and grants decrypt only to the principalSet for the
+  published image digest. The vendor then owns the key-release policy outright: they can refuse a new release until they
+  have rebuilt and reviewed it, and revoke access at any time, whatever the operator does.</p>
+
+  <h3>License decisions that changed the design</h3>
+  <table>
+    <thead><tr><th style="width:22%">Component</th><th style="width:16%">License</th><th>Consequence</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Semgrep-maintained rules</td><td><span class="tag ops">Semgrep Rules License v1.0</span></td><td>Restricted to internal business use; vendors may not use them in competing products or SaaS. <strong>Dropped.</strong> SAST now runs on Opengrep with project-owned Apache-2.0 rules, and CONTRIBUTING forbids porting Registry rules.</td></tr>
+      <tr><td class="svc">Opengrep engine</td><td><span class="tag none">LGPL-2.1</span></td><td>Community fork of the Semgrep CE engine, used unmodified as a separate executable.</td></tr>
+      <tr><td class="svc">tfsec</td><td><span class="tag ops">deprecated</span></td><td>Merged into Trivy and no longer updated. <strong>Replaced</strong> by Trivy for Terraform and CloudFormation.</td></tr>
+      <tr><td class="svc">Syft, Grype, Trivy, Checkov, vLLM</td><td><span class="tag none">Apache-2.0</span></td><td>Pinned by checksum; the build fails on an unlisted license.</td></tr>
+      <tr><td class="svc">cfn-nag</td><td><span class="tag none">MIT</span></td><td>Pinned by checksum.</td></tr>
+      <tr><td class="svc">Model weights</td><td><span class="tag none">OpenMDW-1.1 · Apache-2.0 · MIT</span></td><td>Never committed; pulled by hash and recorded in the AIBOM.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Governance and release discipline</h3>
+  <p>Contributions use DCO sign-off (no CLA). Changes to <code>workload/</code>, <code>wip.tf</code>, the event schema or the
+  shareable template need two trust-boundary reviewers. Every tagged release is built twice on separate runners and fails
+  if the digests differ; it is signed keylessly with cosign, carries SLSA build provenance, and publishes the digest and
+  attestation policy. Hosted operators give 14 days' notice before adopting a new digest so vendors in vendor-key mode can
+  review it first. The project aims for a neutral foundation home (Confidential Computing Consortium or OpenSSF) once
+  maintainers come from three or more organizations.</p>
+
+  <div class="callout">
+    <span class="kicker">What open-sourcing does not change</span>
+    <p>Confidentiality never depended on secrecy of the code, so nothing weakens. Two things are newly exposed and
+    accepted: adversarial vendors can study the rules to evade them (the service attests to what was found, not to what a
+    determined vendor could hide), and anyone can run a competing deployment. That second point is the intended outcome
+    for a trust primitive.</p>
+  </div>
+</section>
+
+<footer>
+  <span>Confidential Assurance Framework — code &amp; IaC profile, GCP reference architecture</span>
+  <span>Verify, don't trust: every claim above is checkable against an EAT token, a digest, or a Rekor inclusion proof.</span>
+</footer>
+
+</div>
+</body>
+</html>
