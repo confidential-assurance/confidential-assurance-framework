@@ -30,7 +30,8 @@ jobs:
         with:
           python-version: "3.12"
       - uses: hashicorp/setup-terraform@v3
-      - run: pip install ruff jsonschema pytest
+      - name: Install workload, CLI and test dependencies
+        run: pip install -r workload/requirements.txt ./cli ruff pytest
       - run: make lint
       - run: make test
 

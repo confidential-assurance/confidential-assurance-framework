@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "caf-cli"
 version = "0.1.0.dev0"
 description = "Encrypt bundles for the Confidential Assurance Framework and verify signed results"
-readme = "../README.md"
+readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
