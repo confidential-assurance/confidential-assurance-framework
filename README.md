@@ -7,15 +7,14 @@ assurance artifacts that any relying organization can verify and reuse. The vend
 exist in plaintext inside the TEE. The operator running the service cannot read them, and nobody has to take the
 operator's word for that.
 
-The first assessment profile, implemented in this repository, scans **source code and infrastructure-as-code**
-(Terraform, CloudFormation) for CVEs and weaknesses and maps findings to OWASP and MITRE ATT&CK. Further profiles
-(containers, APIs, AI models) are planned on the same trust model.
+The assessment profile, implemented in this repository, scans **source code and infrastructure-as-code**
+(Terraform, CloudFormation, Python, Java and other common code files) for CVEs and code weakness findings that are then mapped to OWASP and MITRE ATT&CK scenarios.
 
 - **The workload is open source and reproducibly built.** Anyone can rebuild the container from this repository
   and get the same image digest.
 - **Keys are released only to that digest.** Decryption and signing keys are bound by IAM conditions to
-  hardware attestation claims (image digest, debug disabled, GPU confidential-computing mode on). A modified
-  image cannot obtain keys.
+  hardware attestation claims (e.g. image digest, debug disabled, GPU confidential-computing mode on). A unverified or modified
+  image cannot the SaaS vendors data encryption keys.
 - **Every output is signed and logged.** Artifacts are signed with an attestation-gated key and recorded in a
   public transparency log, so relying parties can verify them without contacting the operator.
 
