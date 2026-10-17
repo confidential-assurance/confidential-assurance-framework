@@ -34,16 +34,55 @@ The assessment profile, implemented in this repository, scans **source code and 
 
 ## How it works
 
+```mermaid
+flowchart TB
+    subgraph VENDOR["Vendor"]
+        CLI["caf bundle<br/>encrypt code + IaC on vendor machine"]
+    end
+
+    subgraph CP["Operator control plane: sees ciphertext only"]
+        INGEST[("Ingest bucket<br/>ciphertext")]
+        LAUNCH["Job launcher<br/>one VM per scan"]
+    end
+
+    subgraph TEE["Confidential Space VM: TDX + GPU CC, no operator access"]
+        ATTEST["Attest<br/>image digest, debug off, GPU CC on"]
+        DECRYPT["Decrypt in RAM"]
+        SCAN["Scanners<br/>Syft/Grype, Opengrep,<br/>Trivy, Checkov, cfn-nag"]
+        LLM["Open-weight LLM<br/>triage, OWASP + ATT&CK"]
+        SEAL["Build, seal, sign<br/>SBOM/AIBOM, reports, provenance"]
+    end
+
+    subgraph TRUST["Trust services"]
+        WIF["Workload Identity<br/>policy in wip.tf"]
+        KMS["Cloud KMS (HSM)"]
+        REKOR["Rekor<br/>transparency log"]
+    end
+
+    subgraph OUT["Recipients"]
+        RESULTS[("Results bucket")]
+        VENDOROUT["Vendor<br/>caf verify + decrypt<br/>detailed report"]
+        RP["Relying party<br/>caf verify<br/>shareable summary"]
+    end
+
+    CLI -->|"ciphertext + wrapped key"| INGEST
+    LAUNCH -->|"pinned image"| ATTEST
+    INGEST --> DECRYPT
+    ATTEST -->|"signed token"| WIF
+    WIF -->|"only if policy matches"| KMS
+    KMS -->|"data key"| DECRYPT
+    ATTEST --> DECRYPT --> SCAN --> LLM --> SEAL
+    SEAL --> RESULTS
+    SEAL -->|"signatures"| REKOR
+    RESULTS --> VENDOROUT
+    RESULTS --> RP
+    RP -.->|"checks"| REKOR
+
+    style TEE stroke-dasharray: 6 4,stroke-width:2px
 ```
-vendor CLI ──ciphertext──▶ GCS ──▶ Confidential Space VM (Intel TDX + NVIDIA GPU in CC mode)
-                                    │ 1. attest → EAT token
-                                    │ 2. token → Workload Identity Federation → KMS unwrap (digest-gated)
-                                    │ 3. decrypt → Syft/Grype · Opengrep · Trivy/Checkov/cfn-nag
-                                    │ 4. LLM triage + OWASP / ATT&CK mapping (vLLM, open-weight model)
-                                    │ 5. build artifacts → HPKE-encrypt detailed report → KMS sign → Rekor
-                                    ▼ 6. zeroize, VM terminates
-                       signed artifacts ──▶ vendor + relying parties (verify offline)
-```
+
+More diagrams, including the step-by-step scan sequence and the reproducible-build trust loop, are in
+[`docs/diagrams.md`](docs/diagrams.md).
 
 ## Repository layout
 
