@@ -6,6 +6,7 @@ starts the scan, so writing it last guarantees the payload is complete when the 
 
 from __future__ import annotations
 
+import json
 import re
 import secrets
 from datetime import UTC, datetime
@@ -35,6 +36,10 @@ def upload(bundle_dir: Path, bucket, vendor_id: str, upload_id: str | None = Non
     payload, manifest = bundle_dir / "payload.bin", bundle_dir / "manifest.json"
     if not payload.is_file() or not manifest.is_file():
         raise FileNotFoundError("bundle directory must contain payload.bin and manifest.json (run caf bundle)")
+    built_for = json.loads(manifest.read_text()).get("vendor_id")
+    if built_for != vendor_id:
+        # The vendor ID is bound into the encryption, so this bundle could never decrypt under another prefix.
+        raise ValueError(f"bundle was built for vendor {built_for!r}, not {vendor_id!r}; rerun caf bundle")
     # if_generation_match=0: create only, never overwrite an existing object.
     bucket.blob(f"{jid}/payload.bin").upload_from_filename(str(payload), if_generation_match=0)
     bucket.blob(f"{jid}/manifest.json").upload_from_filename(str(manifest), if_generation_match=0)

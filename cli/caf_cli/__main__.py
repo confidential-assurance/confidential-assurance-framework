@@ -20,6 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     b = sub.add_parser("bundle", help="encrypt a source tree for upload")
     b.add_argument("src", type=Path)
     b.add_argument("--out", type=Path, required=True)
+    b.add_argument("--vendor", required=True, help="your registered vendor ID (bound into the encryption)")
     b.add_argument("--vendor-pub", type=Path, required=True)
     b.add_argument("--operator-pubkey", type=Path, help="published bundle-unwrap public key (operator-key mode)")
     b.add_argument("--kms-key", required=True, help="KMS key version (operator mode) or your own KMS key (vendor mode)")
@@ -57,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
             from google.cloud import kms
             client = kms.KeyManagementServiceClient()
             encrypt_fn = lambda dek: client.encrypt(request={"name": a.kms_key, "plaintext": dek}).ciphertext
-        bundle.create(a.src, a.out, a.vendor_pub, operator_pubkey_pem=a.operator_pubkey,
+        bundle.create(a.src, a.out, a.vendor_pub, vendor_id=a.vendor, operator_pubkey_pem=a.operator_pubkey,
                       kms_key=a.kms_key, vendor_kms_encrypt=encrypt_fn)
     elif a.cmd in ("upload", "download"):
         from google.cloud import storage

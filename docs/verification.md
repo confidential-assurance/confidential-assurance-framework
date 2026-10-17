@@ -30,6 +30,10 @@ caf verify --results results/ --signing-pubkey artifact-sign.pem \
 This checks every signature, that the provenance statement covers exactly these bytes, and that the embedded
 attestation token was signed by Google Cloud Attestation with claims that satisfy the policy.
 
+The provenance statement also records `plaintext_sha256`, the hash of the exact code archive that was assessed,
+which the enclave verified after decrypting. A vendor can share that hash, or the archive, to show which release a
+report covers.
+
 ## 4. For vendors: hold your own key (recommended)
 
 Instead of wrapping your bundle key to the operator's KMS key, create a Cloud KMS key in your own project and grant
@@ -39,7 +43,7 @@ decrypt your bundles, whatever the operator does.
 
 ```bash
 caf keygen --out ~/.caf
-caf bundle ./my-repo --out ./upload --vendor-pub ~/.caf/vendor-hpke.pub \
+caf bundle ./my-repo --out ./upload --vendor <your vendor id> --vendor-pub ~/.caf/vendor-hpke.pub \
   --vendor-kms --kms-key projects/<you>/locations/<region>/keyRings/<ring>/cryptoKeys/<key>
 ```
 

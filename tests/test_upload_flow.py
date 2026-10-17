@@ -43,11 +43,20 @@ class FakeBucket:
 
 def test_upload_writes_payload_before_manifest_and_never_overwrites(tmp_path):
     (tmp_path / "payload.bin").write_bytes(b"ciphertext")
-    (tmp_path / "manifest.json").write_text("{}")
+    (tmp_path / "manifest.json").write_text(json.dumps({"vendor_id": "acme-saas"}))
     bucket = FakeBucket()
     jid = transfer.upload(tmp_path, bucket, "acme-saas", "20261017T120000Z-ab12cd34")
     assert jid == "jobs/acme-saas/20261017T120000Z-ab12cd34"
     assert bucket.log == [("upload", f"{jid}/payload.bin", 0), ("upload", f"{jid}/manifest.json", 0)]
+
+
+def test_upload_refuses_bundle_built_for_another_vendor(tmp_path):
+    (tmp_path / "payload.bin").write_bytes(b"ciphertext")
+    (tmp_path / "manifest.json").write_text(json.dumps({"vendor_id": "other-co"}))
+    bucket = FakeBucket()
+    with pytest.raises(ValueError, match="built for vendor"):
+        transfer.upload(tmp_path, bucket, "acme-saas", "20261017T120000Z-ab12cd34")
+    assert bucket.log == []
 
 
 def test_upload_rejects_bad_vendor_id(tmp_path):

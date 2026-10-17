@@ -75,7 +75,7 @@ sequenceDiagram
     participant K as Cloud KMS (via Workload Identity)
     actor C as Customer
 
-    V->>V: caf bundle: encrypt with fresh DEK, wrap DEK
+    V->>V: caf bundle: encrypt with fresh DEK, bind vendor ID + keys, wrap DEK
     V->>B: caf upload: payload.bin, then manifest.json
     B->>L: OBJECT_FINALIZE on manifest.json
     L->>L: Check vendor, path, payload size

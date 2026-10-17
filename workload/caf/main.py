@@ -39,7 +39,7 @@ def run() -> int:
         emit(job_id, Stage.KEY_RELEASED)
 
         src = work / "src"
-        size = keys.decrypt_bundle(manifest, payload, dek, src)
+        size = keys.decrypt_bundle(manifest, payload, dek, src, cfg["vendor_id"])
         keys.zeroize(dek)
         emit(job_id, Stage.DECRYPTED, bundle_bytes=size)
 
@@ -61,7 +61,13 @@ def run() -> int:
                    "detailed-report.hpke": sealed, "shareable-report.json": shareable}
         prov = seal.provenance(
             outputs,
-            inputs={"ciphertext_sha256": manifest.ciphertext_sha256},
+            inputs={
+                "vendor_id": cfg["vendor_id"],
+                "ciphertext_sha256": manifest.ciphertext_sha256,
+                # Verified after decryption: identifies exactly which code was assessed.
+                "plaintext_sha256": manifest.plaintext_sha256,
+                "vendor_hpke_public_key_sha256": seal.sha256(manifest.vendor_hpke_public_key),
+            },
             workload={"image_digest": image_digest, "lockfile_sha256": seal.sha256(LOCKFILE.read_bytes())},
             attestation_token=token,
         )

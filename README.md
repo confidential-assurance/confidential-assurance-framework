@@ -106,7 +106,7 @@ More diagrams, including the step-by-step scan sequence and the reproducible-bui
 ```bash
 pip install ./cli
 caf keygen --out ~/.caf                                   # once: key pair that receives your detailed report
-caf bundle ./my-repo --out ./upload --vendor-pub ~/.caf/vendor-hpke.pub \
+caf bundle ./my-repo --out ./upload --vendor <your vendor id> --vendor-pub ~/.caf/vendor-hpke.pub \
   --operator-pubkey bundle-unwrap.pem --kms-key <bundle-unwrap key version>
 caf upload ./upload --bucket <ingest bucket> --vendor <your vendor id>   # prints the job ID; starts the scan
 caf download --bucket <results bucket> --job-id <job id> --out results/
