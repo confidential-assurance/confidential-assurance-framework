@@ -1,11 +1,26 @@
-project_id                     = "my-caf-project"
-region                         = "us-central1"
-launcher_service_account_email = "launcher@my-caf-project.iam.gserviceaccount.com"
+project_id = "my-caf-project"
+region     = "us-central1"
+zone       = "us-central1-a" # must offer a3-highgpu-1g with NVIDIA Confidential Computing
 
 # Digest from the signed release you are deploying. Verify it with `make reproduce` before applying.
 allowed_image_digests = [
   "sha256:0000000000000000000000000000000000000000000000000000000000000000",
 ]
 
+# Release image copied into this project's Artifact Registry by digest (see registry.tf).
+workload_image        = "us-central1-docker.pkg.dev/my-caf-project/caf/workload"
+workload_image_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+# Control-plane launcher built from control-plane/launcher/.
+launcher_image = "us-central1-docker.pkg.dev/my-caf-project/caf/launcher:0.1.0"
+
 hardware_model = "INTEL_TDX"
 require_gpu_cc = true
+
+# Each vendor uploads to and reads results from jobs/<vendor_id>/ only.
+vendors = {
+  "acme-saas" = {
+    display_name = "Acme SaaS, Inc."
+    uploaders    = ["serviceAccount:caf-upload@acme-ci.iam.gserviceaccount.com"]
+  }
+}

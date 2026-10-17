@@ -43,6 +43,13 @@ caf bundle ./my-repo --out ./upload --vendor-pub ~/.caf/vendor-hpke.pub \
   --vendor-kms --kms-key projects/<you>/locations/<region>/keyRings/<ring>/cryptoKeys/<key>
 ```
 
+Then upload. Writing the manifest (always last) starts the scan:
+
+```bash
+caf upload ./upload --bucket <ingest bucket> --vendor <your vendor id>
+caf download --bucket <results bucket> --job-id <job id> --out results/
+```
+
 ## 5. Decrypt your detailed report
 
 ```bash

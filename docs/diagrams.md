@@ -5,19 +5,21 @@ Mermaid sources render directly on GitHub. The full specification, with detailed
 
 ## 1. System architecture
 
-Who holds what. Vendor plaintext exists only inside the dashed Confidential Space box. The control plane moves
-ciphertext and never holds decrypt or signing rights. KMS releases the data key only when the attestation token
-matches the policy in `infra/terraform/wip.tf`.
+The flow starts when a SaaS vendor uploads an encrypted bundle to the ingest bucket. Writing `manifest.json` fires a
+Cloud Storage event that starts one scan VM for that upload. Vendor plaintext exists only inside the dashed
+Confidential Space box. The control plane moves ciphertext and never holds decrypt or signing rights. KMS releases
+the data key only when the attestation token matches the policy in `infra/terraform/wip.tf`.
 
 ```mermaid
 flowchart TB
-    subgraph VENDOR["Vendor"]
-        CLI["caf bundle<br/>encrypt code + IaC on vendor machine"]
+    subgraph VENDOR["SaaS vendor"]
+        CLI["caf bundle + caf upload<br/>encrypt code + IaC, then upload"]
     end
 
-    subgraph CP["Operator control plane: sees ciphertext only"]
-        INGEST[("Ingest bucket<br/>ciphertext")]
-        LAUNCH["Job launcher<br/>one VM per scan"]
+    subgraph CP["CAF control plane: sees ciphertext only"]
+        INGEST[("Ingest bucket<br/>jobs/vendor/upload/")]
+        PUBSUB["Pub/Sub<br/>upload event"]
+        LAUNCH["Launcher on Cloud Run<br/>validates upload, starts VM"]
     end
 
     subgraph TEE["Confidential Space VM: TDX + GPU CC, no operator access"]
@@ -35,14 +37,16 @@ flowchart TB
     end
 
     subgraph OUT["Recipients"]
-        RESULTS[("Results bucket")]
-        VENDOROUT["Vendor<br/>caf verify + decrypt<br/>detailed report"]
-        RP["Relying party<br/>caf verify<br/>shareable summary"]
+        RESULTS[("Results bucket<br/>jobs/vendor/upload/")]
+        VENDOROUT["SaaS vendor<br/>caf download, verify, decrypt"]
+        RP["Customer<br/>caf verify<br/>shareable summary"]
     end
 
-    CLI -->|"ciphertext + wrapped key"| INGEST
-    LAUNCH -->|"pinned image"| ATTEST
-    INGEST --> DECRYPT
+    CLI -->|"payload.bin, then manifest.json"| INGEST
+    INGEST -->|"manifest.json finalized"| PUBSUB
+    PUBSUB -->|"push"| LAUNCH
+    LAUNCH -->|"one VM per upload"| ATTEST
+    INGEST -->|"ciphertext"| DECRYPT
     ATTEST -->|"signed token"| WIF
     WIF -->|"only if policy matches"| KMS
     KMS -->|"data key"| DECRYPT
@@ -50,7 +54,7 @@ flowchart TB
     SEAL --> RESULTS
     SEAL -->|"signatures"| REKOR
     RESULTS --> VENDOROUT
-    RESULTS --> RP
+    VENDOROUT -->|"shares summary"| RP
     RP -.->|"checks"| REKOR
 
     style TEE stroke-dasharray: 6 4,stroke-width:2px
@@ -63,31 +67,34 @@ The blue section is attestation-gated key release: the only way a decryption key
 ```mermaid
 sequenceDiagram
     autonumber
-    actor V as Vendor
-    participant CP as Control plane
+    actor V as SaaS vendor
+    participant B as Ingest bucket
+    participant L as Pub/Sub + launcher
     participant W as Confidential workload (TEE)
     participant A as Google Cloud Attestation
     participant K as Cloud KMS (via Workload Identity)
-    participant R as Relying party
+    actor C as Customer
 
     V->>V: caf bundle: encrypt with fresh DEK, wrap DEK
-    V->>CP: Upload ciphertext + manifest
-    CP->>W: Launch single-use VM from pinned image digest
+    V->>B: caf upload: payload.bin, then manifest.json
+    B->>L: OBJECT_FINALIZE on manifest.json
+    L->>L: Check vendor, path, payload size
+    L->>W: Create single-use VM from pinned template
     rect rgba(27, 79, 216, 0.10)
         W->>A: Hardware evidence (TDX, container digest, GPU)
         A-->>W: Signed attestation token (EAT)
         W->>K: Token: request DEK unwrap
         K-->>W: DEK, only if digest + policy match
     end
+    W->>B: Read ciphertext
     W->>W: Decrypt to RAM, run scanners + LLM triage
     W->>W: HPKE-seal detailed report to vendor key
     W->>K: Sign SBOM/AIBOM, reports, provenance
-    W->>CP: Write signed artifacts, log to Rekor
-    W->>W: Zeroize, VM terminates
-    CP-->>V: Results ready
-    V->>V: caf verify, then caf decrypt
-    V->>R: Share signed summary + SBOM/AIBOM
-    R->>R: caf verify: signatures, provenance, attestation claims
+    W->>W: Write signed artifacts to results bucket, log to Rekor
+    W->>W: Zeroize and exit, VM later deleted by time limit or sweeper
+    V->>V: caf download, caf verify, caf decrypt
+    V->>C: Share signed summary + SBOM/AIBOM
+    C->>C: caf verify: signatures, provenance, attestation claims
 ```
 
 ## 3. Why open source matters: the reproducible-build trust loop

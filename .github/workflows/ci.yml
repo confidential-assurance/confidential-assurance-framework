@@ -30,10 +30,12 @@ jobs:
         with:
           python-version: "3.12"
       - uses: hashicorp/setup-terraform@v3
-      - name: Install workload, CLI and test dependencies
-        run: pip install -r workload/requirements.txt ./cli ruff pytest
+      - name: Install workload, CLI, launcher and test dependencies
+        run: pip install -r workload/requirements.txt -r control-plane/launcher/requirements.txt ./cli ruff pytest
       - run: make lint
       - run: make test
+      - name: Validate Terraform against the Google provider schema
+        run: make tf-validate
 
   licenses:
     runs-on: ubuntu-latest

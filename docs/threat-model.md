@@ -12,6 +12,7 @@ published artifacts.
 | Adversary | Capability | Control |
 |---|---|---|
 | Operator staff | Full control of the GCP project and control plane | No SSH or console in Confidential Space; keys bound to attested image digest; open, reproducible image |
+| Compromised launcher (control plane) | Drops, delays or misconfigures scans | Cannot change the image (template and KMS policy pin the digest) or read plaintext; per-job config is limited to two launch variables, both visible in the attestation token |
 | Malicious operator release | Ships a modified image | New digest fails the KMS condition; vendor-key mode lets vendors refuse new digests; releases are public and reviewed |
 | Cloud provider insider | Hypervisor and host access | TDX / SEV-SNP memory encryption; GPU CC mode; optional independent verification via Intel Trust Authority |
 | Malicious vendor input | Prompt injection, zip slip, decompression bombs | Tar `data` filter; size limits; model output constrained to schema; shareable tier rendered from aggregates only |

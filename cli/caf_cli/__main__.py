@@ -1,4 +1,4 @@
-"""caf CLI: keygen | bundle | verify | decrypt"""
+"""caf CLI: keygen | bundle | upload | download | verify | decrypt"""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import bundle, verify
+from . import bundle, transfer, verify
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -24,6 +24,17 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--operator-pubkey", type=Path, help="published bundle-unwrap public key (operator-key mode)")
     b.add_argument("--kms-key", required=True, help="KMS key version (operator mode) or your own KMS key (vendor mode)")
     b.add_argument("--vendor-kms", action="store_true", help="wrap the DEK with your own Cloud KMS key")
+
+    u = sub.add_parser("upload", help="upload an encrypted bundle; this starts the scan")
+    u.add_argument("bundle_dir", type=Path, help="directory produced by caf bundle")
+    u.add_argument("--bucket", required=True, help="CAF ingest bucket")
+    u.add_argument("--vendor", required=True, help="your registered vendor ID")
+    u.add_argument("--upload-id", help="optional; defaults to a timestamp plus random suffix")
+
+    g = sub.add_parser("download", help="download the signed results of a scan")
+    g.add_argument("--bucket", required=True, help="CAF results bucket")
+    g.add_argument("--job-id", required=True, help="the job ID printed by caf upload")
+    g.add_argument("--out", type=Path, required=True)
 
     v = sub.add_parser("verify", help="verify signatures, provenance and attestation of a result set")
     v.add_argument("--results", type=Path, required=True)
@@ -48,6 +59,13 @@ def main(argv: list[str] | None = None) -> int:
             encrypt_fn = lambda dek: client.encrypt(request={"name": a.kms_key, "plaintext": dek}).ciphertext
         bundle.create(a.src, a.out, a.vendor_pub, operator_pubkey_pem=a.operator_pubkey,
                       kms_key=a.kms_key, vendor_kms_encrypt=encrypt_fn)
+    elif a.cmd in ("upload", "download"):
+        from google.cloud import storage
+        bucket = storage.Client().bucket(a.bucket)
+        if a.cmd == "upload":
+            print(json.dumps({"job_id": transfer.upload(a.bundle_dir, bucket, a.vendor, a.upload_id)}))
+        else:
+            transfer.download(bucket, a.job_id, a.out)
     elif a.cmd == "verify":
         try:
             info = verify.verify(a.results, a.signing_pubkey, set(a.expected_digest), a.hwmodel, not a.no_gpu)

@@ -39,9 +39,84 @@ variable "require_gpu_cc" {
   default     = true
 }
 
-variable "launcher_service_account_email" {
-  description = "Control-plane service account that may create Confidential Space VMs. Gets no KMS rights."
+variable "zone" {
+  description = "Zone for scan VMs. Must offer a3-highgpu-1g with NVIDIA Confidential Computing."
   type        = string
+  default     = "us-central1-a"
+}
+
+variable "vendors" {
+  description = <<-EOT
+    Registered SaaS vendors. The map key is the vendor ID used in object paths (jobs/<vendor_id>/...).
+    uploaders: IAM principals allowed to upload to, and read results from, that vendor's prefix only,
+    for example "serviceAccount:ci@vendor-project.iam.gserviceaccount.com" or "group:secops@vendor.example".
+  EOT
+  type = map(object({
+    display_name = string
+    uploaders    = list(string)
+  }))
+  default = {}
+
+  validation {
+    condition     = alltrue([for k in keys(var.vendors) : can(regex("^[a-z0-9-]{3,32}$", k))])
+    error_message = "Vendor IDs must be 3-32 characters of lowercase letters, digits and hyphens."
+  }
+}
+
+variable "workload_image" {
+  description = "Artifact Registry path of the workload image, without tag or digest (REGION-docker.pkg.dev/PROJECT/caf/workload)."
+  type        = string
+}
+
+variable "workload_image_digest" {
+  description = "Digest the scan VMs launch. Must be one of allowed_image_digests."
+  type        = string
+}
+
+variable "launcher_image" {
+  description = "Container image for the control-plane launcher (Cloud Run). Not part of the trust boundary."
+  type        = string
+}
+
+variable "model" {
+  description = "Analyst model identifier passed to the workload; must match an entry in the workload's lockfile."
+  type        = string
+  default     = "phase1-27b-coder"
+}
+
+variable "provisioning_model" {
+  description = "STANDARD or SPOT for scan VMs."
+  type        = string
+  default     = "STANDARD"
+
+  validation {
+    condition     = contains(["STANDARD", "SPOT"], var.provisioning_model)
+    error_message = "provisioning_model must be STANDARD or SPOT."
+  }
+}
+
+variable "max_scan_seconds" {
+  description = "Hard limit on a scan VM's lifetime. Compute Engine deletes the VM when it is reached."
+  type        = number
+  default     = 7200
+}
+
+variable "max_bundle_bytes" {
+  description = "Largest ciphertext bundle the launcher accepts."
+  type        = number
+  default     = 2147483648
+}
+
+variable "boot_disk_gb" {
+  description = "Boot disk size for scan VMs; must hold the workload image including model weights."
+  type        = number
+  default     = 200
+}
+
+variable "shm_size_kb" {
+  description = "RAM-backed /dev/shm size where plaintext is unpacked. Must exceed the largest unpacked bundle."
+  type        = number
+  default     = 33554432
 }
 
 variable "ingest_retention_days" {

@@ -1,7 +1,7 @@
 .PHONY: lint test reproduce licenses tf-validate
 
 lint:
-	ruff check workload cli
+	ruff check workload cli control-plane tests
 	terraform -chdir=infra/terraform fmt -check -recursive
 	python3 -c "import json,glob,jsonschema; [jsonschema.Draft202012Validator.check_schema(json.load(open(f))) for f in glob.glob('schemas/*.json')]"
 

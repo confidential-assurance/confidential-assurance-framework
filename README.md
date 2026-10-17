@@ -36,13 +36,14 @@ The assessment profile, implemented in this repository, scans **source code and 
 
 ```mermaid
 flowchart TB
-    subgraph VENDOR["Vendor"]
-        CLI["caf bundle<br/>encrypt code + IaC on vendor machine"]
+    subgraph VENDOR["SaaS vendor"]
+        CLI["caf bundle + caf upload<br/>encrypt code + IaC, then upload"]
     end
 
-    subgraph CP["Operator control plane: sees ciphertext only"]
-        INGEST[("Ingest bucket<br/>ciphertext")]
-        LAUNCH["Job launcher<br/>one VM per scan"]
+    subgraph CP["CAF control plane: sees ciphertext only"]
+        INGEST[("Ingest bucket<br/>jobs/vendor/upload/")]
+        PUBSUB["Pub/Sub<br/>upload event"]
+        LAUNCH["Launcher on Cloud Run<br/>validates upload, starts VM"]
     end
 
     subgraph TEE["Confidential Space VM: TDX + GPU CC, no operator access"]
@@ -60,14 +61,16 @@ flowchart TB
     end
 
     subgraph OUT["Recipients"]
-        RESULTS[("Results bucket")]
-        VENDOROUT["Vendor<br/>caf verify + decrypt<br/>detailed report"]
-        RP["Relying party<br/>caf verify<br/>shareable summary"]
+        RESULTS[("Results bucket<br/>jobs/vendor/upload/")]
+        VENDOROUT["SaaS vendor<br/>caf download, verify, decrypt"]
+        RP["Customer<br/>caf verify<br/>shareable summary"]
     end
 
-    CLI -->|"ciphertext + wrapped key"| INGEST
-    LAUNCH -->|"pinned image"| ATTEST
-    INGEST --> DECRYPT
+    CLI -->|"payload.bin, then manifest.json"| INGEST
+    INGEST -->|"manifest.json finalized"| PUBSUB
+    PUBSUB -->|"push"| LAUNCH
+    LAUNCH -->|"one VM per upload"| ATTEST
+    INGEST -->|"ciphertext"| DECRYPT
     ATTEST -->|"signed token"| WIF
     WIF -->|"only if policy matches"| KMS
     KMS -->|"data key"| DECRYPT
@@ -75,7 +78,7 @@ flowchart TB
     SEAL --> RESULTS
     SEAL -->|"signatures"| REKOR
     RESULTS --> VENDOROUT
-    RESULTS --> RP
+    VENDOROUT -->|"shares summary"| RP
     RP -.->|"checks"| REKOR
 
     style TEE stroke-dasharray: 6 4,stroke-width:2px
@@ -90,12 +93,27 @@ More diagrams, including the step-by-step scan sequence and the reproducible-bui
 |---|---|
 | `workload/` | The measured TEE container: pipeline, scanner orchestration, report builder, signer |
 | `cli/` | Vendor tool: encrypt and upload bundles; verify and decrypt results |
-| `infra/terraform/` | GCP deployment: KMS, Workload Identity pool with attestation conditions, buckets, VPC-SC |
+| `infra/terraform/` | GCP deployment: KMS, Workload Identity pool with attestation conditions, buckets, upload trigger, launcher, scan VM template |
+| `control-plane/` | Launcher that turns upload events into single-use scan VMs (not part of the trust boundary) |
 | `rules/` | Project-maintained Opengrep and IaC rules (Apache-2.0) |
 | `schemas/` | JSON Schemas for findings and the shareable report |
 | `templates/` | Shareable-report template (renders from aggregates only) |
 | `eval/` | Model evaluation harness specification |
 | `docs/` | Architecture, threat model, verification guide |
+
+## Run a scan (SaaS vendor)
+
+```bash
+pip install ./cli
+caf keygen --out ~/.caf                                   # once: key pair that receives your detailed report
+caf bundle ./my-repo --out ./upload --vendor-pub ~/.caf/vendor-hpke.pub \
+  --operator-pubkey bundle-unwrap.pem --kms-key <bundle-unwrap key version>
+caf upload ./upload --bucket <ingest bucket> --vendor <your vendor id>   # prints the job ID; starts the scan
+caf download --bucket <results bucket> --job-id <job id> --out results/
+```
+
+Uploading `manifest.json` (which `caf upload` always writes last) is what starts the scan. See
+[`control-plane/README.md`](control-plane/README.md) for the upload protocol.
 
 ## Verify a scan result
 

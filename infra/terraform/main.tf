@@ -30,6 +30,9 @@ locals {
     "storage.googleapis.com",
     "artifactregistry.googleapis.com",
     "logging.googleapis.com",
+    "pubsub.googleapis.com",
+    "run.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ]
 }
 
@@ -58,9 +61,8 @@ resource "google_project_iam_member" "workload_vm_logs" {
   member  = "serviceAccount:${google_service_account.workload_vm.email}"
 }
 
-# The control-plane launcher may start VMs as the workload SA, and nothing more.
-resource "google_service_account_iam_member" "launcher_can_use_workload_sa" {
-  service_account_id = google_service_account.workload_vm.name
-  role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:${var.launcher_service_account_email}"
+resource "google_project_iam_member" "workload_vm_registry" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.workload_vm.email}"
 }
